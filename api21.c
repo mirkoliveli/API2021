@@ -57,7 +57,7 @@ void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long si
 
 int main() {
 
-    FILE* input = freopen("/home/mirko/CLionProjects/API21/open_tests/input_4", "r", stdin);
+    FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/input_4", "r", stdin);
     unsigned long int n_node;
     unsigned long int n_elementi_classifica;
     int command_id;
