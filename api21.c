@@ -64,16 +64,6 @@ int main() {
     char *eptr;
     stringa = calloc(20, sizeof(char));
 
-
-    /*
-     * Acquisisce il primo input
-     * Formato primo input: numero_nodi_del_grafo (carattere spazio) numero_elementi_della_classifica
-     *
-     * OLD:
-     *     firstinput = Acquisisci_Stringa(firstinput);
-     *     sscanf(firstinput, "%d %d%*c", &n_node, &n_elementi_classifica);
-     */
-
     stringa = Acquisisci_Stringa(stringa);
     n_node = strtoul(stringa, &eptr, 10);
 
@@ -350,7 +340,6 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
             if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato
                 //&& Antenato(grafo, i, j)
                     ) {
-                //if (matrice[i][j] != 0) {
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (nuovo_peso < grafo[j].peso) {
@@ -364,13 +353,9 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
                         trovati++;
                     }
                 }
-                //}
-
             }
 
             if (cambiato_punteggio == true) {
-                //Bubble_Sort_Priority(priority_queue, k + 1, trovati - 1);
-                //Quick_Sort_Priority(priority_queue, k + 1, trovati - 1);
                 Insertion_Sort(priority_queue, k + 1, trovati - 1);
                 cambiato_punteggio = false;
             }
@@ -425,9 +410,9 @@ char *Acquisisci_Stringa(char *stringa) {
     int count = 0;
 
     while (1)
-        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array di 1024 byte
+        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
     {
-        input = fgetc(stdin);
+        input = getc(stdin);
         if (input == ',' || input == ' ' || input == '\n') {
             break;
         }
