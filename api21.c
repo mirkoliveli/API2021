@@ -43,7 +43,6 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
 void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione);
 
 
-
 void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
 
 
@@ -387,14 +386,14 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
 
 }
 
-void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size){
+void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size) {
     unsigned long int i, j, k;
 
-    for (i = start; i < size; i++){
+    for (i = start; i < size; i++) {
         k = priority[i]->peso;
         j = i - 1;
 
-        while (j >= start && priority[j]->peso > k){
+        while (j >= start && priority[j]->peso > k) {
             nodo *tmp = priority[j + 1];
             priority[j + 1] = priority[j];
             priority[j] = tmp;
