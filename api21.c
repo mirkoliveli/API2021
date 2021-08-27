@@ -42,13 +42,9 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
 
 void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione);
 
-bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev);
 
-unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final);
 
-void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final);
-
-void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long size);
+void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
 
 
 
@@ -57,7 +53,7 @@ void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long si
 
 int main() {
 
-    FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/input_4", "r", stdin);
+    //FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/input_4", "r", stdin);
     unsigned long int n_node;
     unsigned long int n_elementi_classifica;
     int command_id;
@@ -185,7 +181,7 @@ int main() {
                 free(matr_costi);
                 free(classifica);
                 free(grafo);
-                fclose(input);
+                //fclose(input);
                 return 0;
 
 
@@ -374,7 +370,8 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
 
             if (cambiato_punteggio == true) {
                 //Bubble_Sort_Priority(priority_queue, k + 1, trovati - 1);
-                Quick_Sort_Priority(priority_queue, k + 1, trovati - 1);
+                //Quick_Sort_Priority(priority_queue, k + 1, trovati - 1);
+                Insertion_Sort(priority_queue, k + 1, trovati - 1);
                 cambiato_punteggio = false;
             }
 
@@ -383,23 +380,6 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
         tot = tot + priority_queue[k]->peso;
     }
     return tot;
-}
-
-
-bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev) {
-
-    bool ritorno = true;
-
-    if (ind_analizzare == 0) {
-        return true;
-    }
-    if (grafo[ind_analizzare].nodo_precedente != ind_prev) {
-        ritorno = Antenato(grafo, grafo[ind_analizzare].nodo_precedente, ind_prev);
-    }
-    if (grafo[ind_analizzare].nodo_precedente == ind_prev) {
-        return false;
-    }
-    return ritorno;
 }
 
 void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
@@ -418,6 +398,79 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
         grafo[index].nodo_precedente = MAX;
         grafo[index].raggiunto = false;
         grafo[index].esaminato = false;
+    }
+
+}
+
+void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size){
+    unsigned long int i, j, k;
+
+    for (i = start; i < size; i++){
+        k = priority[i]->peso;
+        j = i - 1;
+
+        while (j >= start && priority[j]->peso > k){
+            nodo *tmp = priority[j + 1];
+            priority[j + 1] = priority[j];
+            priority[j] = tmp;
+            j = j - 1;
+        }
+        priority[j + 1]->peso = k;
+    }
+}
+
+char *Acquisisci_Stringa(char *stringa) {
+
+    char input;
+    int count = 0;
+
+    while (1)
+        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array di 1024 byte
+    {
+        input = fgetc(stdin);
+        if (input == ',' || input == ' ' || input == '\n') {
+            break;
+        }
+        if (input == EOF) {
+            return "END";
+        }
+        stringa[count++] = input;
+
+    }
+    stringa[count] = '\0';
+    return stringa;
+}
+
+
+
+
+
+//------------------------------------------------------REMINISCENZE--------------------------------------------------//
+/*
+bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev);
+
+unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final);
+
+void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final);
+
+void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long size);
+
+unsigned long int Funzione_Buffa (nodo **priority, unsigned long int i, unsigned long int j);
+*/
+
+/*
+ * void Bubble_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int size) {
+    unsigned long int i, j;
+
+
+    for (i = start; i < size - 1; i++) {
+        for (j = start; j < size - 1; j++) {
+            if (priority[j]->peso > priority[j + 1]->peso) {
+                nodo *tmp = priority[j + 1];
+                priority[j + 1] = priority[j];
+                priority[j] = tmp;
+            }
+        }
     }
 
 }
@@ -453,44 +506,19 @@ unsigned long int Partition(nodo **priority, unsigned long int start, unsigned l
 
 }
 
-char *Acquisisci_Stringa(char *stringa) {
+bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev) {
 
-    char input;
-    int count = 0;
+    bool ritorno = true;
 
-    while (1)
-        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array di 1024 byte
-    {
-        input = fgetc(stdin);
-        if (input == ',' || input == ' ' || input == '\n') {
-            break;
-        }
-        if (input == EOF) {
-            return "END";
-        }
-        stringa[count++] = input;
-
+    if (ind_analizzare == 0) {
+        return true;
     }
-    stringa[count] = '\0';
-    return stringa;
-}
-
-void Bubble_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int size) {
-    unsigned long int i, j;
-
-
-    for (i = start; i < size - 1; i++) {
-        for (j = start; j < size - 1; j++) {
-            if (priority[j]->peso > priority[j + 1]->peso) {
-                nodo *tmp = priority[j + 1];
-                priority[j + 1] = priority[j];
-                priority[j] = tmp;
-            }
-        }
+    if (grafo[ind_analizzare].nodo_precedente != ind_prev) {
+        ritorno = Antenato(grafo, grafo[ind_analizzare].nodo_precedente, ind_prev);
     }
-
+    if (grafo[ind_analizzare].nodo_precedente == ind_prev) {
+        return false;
+    }
+    return ritorno;
 }
-
-
-
-//------------------------------------------------------REMINISCENZE--------------------------------------------------//
+*/
