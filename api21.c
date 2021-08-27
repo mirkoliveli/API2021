@@ -34,21 +34,21 @@ char *Acquisisci_Stringa(char *stringa);
 
 int Identifica_Comando(char *command);
 
-void Acquisisci_Mactrice(unsigned  long int **matrice, unsigned int dimensione, char *stringa);
+void Acquisisci_Matrice(unsigned long int **matrice, unsigned int dimensione, char *stringa);
 
-unsigned  long int
-CalcoloPunteggio(unsigned  long int **matrice, unsigned  long int dimensione, nodo *grafo,
+unsigned long int
+CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo *grafo,
                  nodo **priority_queue);
 
-void Inizializza_Grafo(nodo *grafo, unsigned  long int dimensione);
+void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione);
 
-bool Antenato(nodo *grafo, unsigned  long int ind_analizzare, unsigned  long int ind_prev);
+bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev);
 
-unsigned long int Partition(nodo **priority, unsigned  long int start, unsigned  long int final);
+unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final);
 
-void Quick_Sort_Priority(nodo **priority, unsigned  long int start, unsigned  long int final);
+void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final);
 
-void Bubble_Sort_Priority(nodo **priority, unsigned  long start, unsigned  long size);
+void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long size);
 
 
 
@@ -57,12 +57,13 @@ void Bubble_Sort_Priority(nodo **priority, unsigned  long start, unsigned  long 
 
 int main() {
 
-    unsigned  long int n_node;
-    unsigned  long int n_elementi_classifica;
+    FILE* input = freopen("/home/mirko/CLionProjects/API21/open_tests/input_4", "r", stdin);
+    unsigned long int n_node;
+    unsigned long int n_elementi_classifica;
     int command_id;
-    unsigned  long int i = 0;
-    unsigned  long int peggiore = 0;
-    unsigned  long int contatoregrafi = 0;
+    unsigned long int i = 0;
+    unsigned long int peggiore = 0;
+    unsigned long int contatoregrafi = 0;
     char *stringa = NULL;
     char *eptr;
     stringa = calloc(20, sizeof(char));
@@ -95,9 +96,9 @@ int main() {
 
 
     //Creo la matrice di adiacenza contenente i costi delle transizioni
-    unsigned  long int **matr_costi = (unsigned  long int **) malloc(n_node * sizeof(unsigned  long int *));
+    unsigned long int **matr_costi = (unsigned long int **) malloc(n_node * sizeof(unsigned long int *));
     while (i < n_node) {
-        matr_costi[i] = (unsigned  long int *) malloc(n_node * sizeof(unsigned  long int));
+        matr_costi[i] = (unsigned long int *) malloc(n_node * sizeof(unsigned long int));
         i++;
     }
 
@@ -119,7 +120,7 @@ int main() {
                 //printf("Identificato AggiungiGrafo\n");
 
                 Inizializza_Grafo(grafo, n_node);
-                Acquisisci_Mactrice(matr_costi, n_node, stringa);
+                Acquisisci_Matrice(matr_costi, n_node, stringa);
 
 
 
@@ -180,10 +181,11 @@ int main() {
 
             case 3:
                 //printf("Identificato END\n");
-//                free(priority_queue);
-//                free(matr_costi);
-//                free(classifica);
-//                free(grafo);
+                free(priority_queue);
+                free(matr_costi);
+                free(classifica);
+                free(grafo);
+                fclose(input);
                 return 0;
 
 
@@ -195,9 +197,9 @@ int main() {
 }
 
 
-void print_classifica(nome_punteggio *classifica, unsigned  long int n_elementi_da_stampare) {
+void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_da_stampare) {
 
-    unsigned  long int i;
+    unsigned long int i;
 
     //---------STAMPA DI DEBUG----------//
 
@@ -216,8 +218,8 @@ void print_classifica(nome_punteggio *classifica, unsigned  long int n_elementi_
     printf("%lu\n", classifica[i].nome);
 }
 
-void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, unsigned  long int startdacopiare,
-                     unsigned long int startdovecopiare, unsigned  long int quanticopiarne) {
+void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, unsigned long int startdacopiare,
+                     unsigned long int startdovecopiare, unsigned long int quanticopiarne) {
     int i;
     for (i = 0; i < quanticopiarne; i++) {
         dovecopiare[startdovecopiare].punteggio = dacopiare[startdacopiare].punteggio;
@@ -227,7 +229,7 @@ void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, uns
     }
 }
 
-void MERGE(nome_punteggio *classifica, unsigned  long int start, unsigned long int centro,
+void MERGE(nome_punteggio *classifica, unsigned long int start, unsigned long int centro,
            unsigned long int final) {
     unsigned long int i = start;
     unsigned long int j = centro + 1;
@@ -267,13 +269,13 @@ void MERGE(nome_punteggio *classifica, unsigned  long int start, unsigned long i
 
 }
 
-void MERGESORT(nome_punteggio *classifica, unsigned  long int start, unsigned  long int final) {
+void MERGESORT(nome_punteggio *classifica, unsigned long int start, unsigned long int final) {
     // start: indice iniziale dell'array
     // final: indice finale dell'array
     // centro: indice intermedio dell'array
     // Divido l'array in 2 sottoarray; Se l'array ha un elemento, è già ordinato e non faccio nulla.
     if (start < final) {
-        unsigned  long int centro = (start + final) / 2;
+        unsigned long int centro = (start + final) / 2;
         MERGESORT(classifica, start, centro);
         MERGESORT(classifica, centro + 1, final);
         MERGE(classifica, start, centro, final);
@@ -298,7 +300,7 @@ int Identifica_Comando(char *command) {
     return -1;
 }
 
-void Acquisisci_Mactrice(unsigned long int **matrice, unsigned int dimensione, char *stringa) {
+void Acquisisci_Matrice(unsigned long int **matrice, unsigned int dimensione, char *stringa) {
 
     unsigned long int i, j;
     char *pEnd;
@@ -340,7 +342,7 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
     unsigned long int i, j, k;
     unsigned long int trovati = 1;
     unsigned long int tot = 0;
-    unsigned long int nuovopeso;
+    unsigned long int nuovo_peso;
     bool cambiato_punteggio = false;
 
 
@@ -353,11 +355,11 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
                 //&& Antenato(grafo, i, j)
                     ) {
                 //if (matrice[i][j] != 0) {
-                nuovopeso = matrice[i][j] + grafo[i].peso;
+                nuovo_peso = matrice[i][j] + grafo[i].peso;
 
-                if (nuovopeso < grafo[j].peso) {
+                if (nuovo_peso < grafo[j].peso) {
                     cambiato_punteggio = true;
-                    grafo[j].peso = nuovopeso;
+                    grafo[j].peso = nuovo_peso;
                     grafo[j].nodo_precedente = i;
 
                     if (grafo[j].raggiunto == false) {
@@ -373,27 +375,18 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
             if (cambiato_punteggio == true) {
                 //Bubble_Sort_Priority(priority_queue, k + 1, trovati - 1);
                 Quick_Sort_Priority(priority_queue, k + 1, trovati - 1);
-
+                cambiato_punteggio = false;
             }
-
-            cambiato_punteggio = false;
 
             grafo[i].esaminato = true;
         }
-    }
-
-
-    for (k = 0; k < trovati; k++) {
         tot = tot + priority_queue[k]->peso;
     }
-
-
-
     return tot;
 }
 
 
-bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned  long int ind_prev) {
+bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev) {
 
     bool ritorno = true;
 
@@ -429,7 +422,7 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
 
 }
 
-void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned  long int final) {
+void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final) {
 
     unsigned long int partitioned;
     if (start < final) {
@@ -439,7 +432,7 @@ void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned  lon
     }
 }
 
-unsigned long int Partition(nodo **priority, unsigned  long int start, unsigned  long int final) {
+unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final) {
 
     unsigned long int el = priority[final]->peso;
     unsigned long int i = start - 1;
@@ -461,9 +454,9 @@ unsigned long int Partition(nodo **priority, unsigned  long int start, unsigned 
 }
 
 char *Acquisisci_Stringa(char *stringa) {
+
     char input;
     int count = 0;
-
 
     while (1)
         // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array di 1024 byte
@@ -482,24 +475,19 @@ char *Acquisisci_Stringa(char *stringa) {
     return stringa;
 }
 
-void Bubble_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int size){
+void Bubble_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int size) {
     unsigned long int i, j;
 
 
-    for (i = start; i < size - 1; i++){
-        for (j = start; j < size - 1; j++){
-            if (priority[j]->peso > priority[j+1]->peso){
-                nodo *tmp = priority[j+1];
-                priority[j+1] = priority[j];
+    for (i = start; i < size - 1; i++) {
+        for (j = start; j < size - 1; j++) {
+            if (priority[j]->peso > priority[j + 1]->peso) {
+                nodo *tmp = priority[j + 1];
+                priority[j + 1] = priority[j];
                 priority[j] = tmp;
             }
         }
     }
-
-//    for (i = start; i < size; i++){
-//        printf("%lu\n", priority[i]->peso);
-//    }
-//    printf("\n");
 
 }
 
