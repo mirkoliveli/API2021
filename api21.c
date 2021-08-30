@@ -473,7 +473,7 @@ char *Acquisisci_Stringa(char *stringa) {
     while (1)
         // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
     {
-        input = getc(stdin);
+        input = getc_unlocked(stdin);
         if (input == ',' || input == ' ' || input == '\n') {
             break;
         }
