@@ -45,6 +45,8 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione);
 
 void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
 
+unsigned long int Find_Next(nodo **priority, unsigned long int peso_attuale, unsigned long int size);
+
 
 
 
@@ -52,7 +54,8 @@ void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int 
 
 int main() {
 
-    //FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/input_4", "r", stdin);
+    FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/generato.txt", "r", stdin);
+    //unsigned long int score;
     unsigned long int n_node;
     unsigned long int n_elementi_classifica;
     int command_id;
@@ -104,18 +107,11 @@ int main() {
             case 1:
                 //printf("Identificato AggiungiGrafo\n");
 
+//                if (contatoregrafi == 8){
+//                    printf("gigi\n");
+//                }
                 Inizializza_Grafo(grafo, n_node);
                 Acquisisci_Matrice(matr_costi, n_node, stringa);
-
-
-
-                //-----------------STAMPA PUNTEGGI DI DEBUG-----------------------//
-
-//                printf("%lu, %lu\n", classifica[n_elementi_classifica].nome,
-//                       classifica[n_elementi_classifica].punteggio);
-
-                //----------------------------------------------------------------//
-
 
 
                 //QUESTO IF VERIFICA CHE CI SIANO SUFFICIENTI GRAFI PER RIEMPIRE LA CLASSIFICA.
@@ -123,6 +119,12 @@ int main() {
                 if (contatoregrafi < n_elementi_classifica) {
 
                     classifica[contatoregrafi].nome = contatoregrafi;
+
+                    //-------------------------CALCOLO PER DEBUG-------------------------//
+//                    score = CalcoloPunteggio(matr_costi, n_node, grafo, priority_queue);
+//                    classifica[contatoregrafi].punteggio = score;
+                    //-------------------------------------------------------------------//
+
                     classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                             priority_queue);
                     if (peggiore == 0) {
@@ -138,8 +140,15 @@ int main() {
                 else {
 
                     classifica[n_elementi_classifica].nome = contatoregrafi;
+                    //-------------------------CALCOLO PER DEBUG-------------------------//
+//                    score = CalcoloPunteggio(matr_costi, n_node, grafo, priority_queue);
+//                    classifica[n_elementi_classifica].punteggio = score;
+                    //-------------------------------------------------------------------//
+
                     classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                                    priority_queue);
+
+
                     //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
                     //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
                     if (peggiore > classifica[n_elementi_classifica].punteggio) {
@@ -147,6 +156,14 @@ int main() {
                         peggiore = classifica[n_elementi_classifica].punteggio;
                     }
                 }
+
+                //-----------------STAMPA PUNTEGGI DI DEBUG-----------------------//
+                // cerca la variabile score
+
+//                printf("%lu, %lu\n", contatoregrafi, score);
+//
+                //----------------------------------------------------------------//
+
                 contatoregrafi++;
                 break;
 
@@ -170,7 +187,7 @@ int main() {
                 free(matr_costi);
                 free(classifica);
                 free(grafo);
-                //fclose(input);
+                fclose(input);
                 return 0;
 
 
@@ -328,13 +345,31 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
     unsigned long int trovati = 1;
     unsigned long int tot = 0;
     unsigned long int nuovo_peso;
-    bool cambiato_punteggio = false;
+    //bool cambiato_punteggio = false;
 
+    /*
+     *
+     * i = nodo di partenza
+     * j = nodo di arrivo
+     * k = numero di nodi analizzati
+     *
+     */
 
     priority_queue[0] = &(grafo[0]);
+    i = 0;
 
     for (k = 0; k < trovati; k++) {
-        i = priority_queue[k]->nome;
+
+
+        /*
+         *
+         * SE INSERTION SORT
+         *
+         * i = priority_queue[k]->nome
+         */
+
+        i = Find_Next(priority_queue, grafo[i].peso, trovati - 1);
+
         for (j = 1; j < dimensione; j++) {
             if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato
                 //&& Antenato(grafo, i, j)
@@ -342,7 +377,7 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (nuovo_peso < grafo[j].peso) {
-                    cambiato_punteggio = true;
+                    //cambiato_punteggio = true;
                     grafo[j].peso = nuovo_peso;
                     grafo[j].nodo_precedente = i;
 
@@ -354,15 +389,20 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
                 }
             }
 
+
+/*
+
             if (cambiato_punteggio == true) {
                 Insertion_Sort(priority_queue, k + 1, trovati - 1);
                 cambiato_punteggio = false;
             }
 
-            grafo[i].esaminato = true;
+*/
         }
-        tot = tot + priority_queue[k]->peso;
+        grafo[i].esaminato = true;
+        tot = tot + grafo[i].peso;
     }
+
     return tot;
 }
 
@@ -401,6 +441,28 @@ void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int 
         }
         priority[j + 1]->peso = k;
     }
+}
+
+unsigned long int Find_Next(nodo **priority, unsigned long int peso_attuale, unsigned long int size){
+    unsigned long int n;
+    unsigned long int next = priority[size]->nome;
+    unsigned long int migliore = MAX;
+    unsigned long int peso_da_cercare;
+
+
+
+    for (n = 1; n <= size; n++){
+        if (!priority[n]->esaminato) {
+            peso_da_cercare = priority[n]->peso;
+            if (peso_attuale <= peso_da_cercare && peso_da_cercare < migliore) {
+                migliore = peso_da_cercare;
+                next = priority[n]->nome;
+            }
+        }
+    }
+
+    //printf("next: %lu, ", next);
+    return next;
 }
 
 char *Acquisisci_Stringa(char *stringa) {
