@@ -2,122 +2,69 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <assert.h>
 
-#define DEBUG "generato.txt"
+//#define DEBUG "input_1"
+//#define DEBUG "generato.txt"
+//#define DEBUG "50x50.txt"
 #define MAX 4294967295
 
-char *split_base;
-char *split_init;
-char *split_str;
+static char* stdin_buffer;
+static   int stdin_buffer_size;
 
-const int SPLIT_SIZE = 512*1024;
-const char *SPLIT_DELIMITER = " ,\n";
-char *SPLIT_INIT_STRING = "\0";
-
-void initAcquisisciStringa() {
-    split_base = malloc(SPLIT_SIZE + 1);
-    *split_base = '\0';
-    split_init = split_base - 1;
-    split_str = split_base - 1;
+static inline void stdin_init(int length) {
+    stdin_buffer_size = length * 10 + length + 10;
+    stdin_buffer = malloc(stdin_buffer_size);
 }
 
-static inline char *_Acquisisci_Stringa() {
-    split_init = split_str + 1;
-    split_str = split_init;
-    while (*split_str != ',' && *split_str != ' ' && *split_str != '\n') {
-//        printf("->WHILE: [%s] [%s] [%s]\n", split_base, split_init, split_str);
-        if (*split_str == '\0') {
-            int nchar = split_str - split_init;
-            memmove(split_base, split_init, nchar);
-            split_init = split_base;
-            split_str = split_base + nchar;
-            //printf("REALLOC1 %d\n", (SPLIT_SIZE - nchar));
-            int nread = fread(split_str, 1, SPLIT_SIZE - nchar, stdin);
-            //printf("REALLOC2 %d\n", nread);
-            if (nread == 0 && feof(stdin)) {
-                return "END";
-            }
-            *(split_str + 1 + nread) = '\0';
-        } else {
-            split_str++;
-        }
+static inline int stdin_getfch() {
+    if (feof(stdin)){
+        return EOF;
     }
-
-    *split_str = '\0';
-//    printf("RETURN %s\n", split_init);
-    return split_init;
-//        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
-//    {
-//        input = getc_unlocked(stdin);
-//        if (input == ',' || input == ' ' || input == '\n') {
-//            break;
-//        }
-//        if (input == EOF) {
-//            return "END";
-//        }
-//        stringa[count++] = input;
-//
-//    }
-//    stringa[count] = '\0';
-//    return stringa;
-//
-//
-//
-//
-//    char* toReturn = strtok(stringa, SPLIT_DELIMITER);
-//
-//    if (toReturn != NULL){
-//        return toReturn;
-//    }
-//    else {
-//        int r = fread(new_str, 1, SPLIT_SIZE, stdin);
-//        new_str[r + 1] = '\0';
-//
-//        if (r == 0){
-//            if (feof(stdin)){
-//                return "END";
-//            }
-//        }
-//
-//        char* tmp = new_str;
-//        new_str = current_str;
-//        current_str = tmp;
-//        tmp_str = current_str;
-//        return _Acquisisci_Stringa(tmp_str);
-//
-//    }
-
-
-//
-//    char input;
-//    int count = 0;
-//
-//    while (1)
-//        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
-//    {
-//        input = getc_unlocked(stdin);
-//        if (input == ',' || input == ' ' || input == '\n') {
-//            break;
-//        }
-//        if (input == EOF) {
-//            return "END";
-//        }
-//        stringa[count++] = input;
-//
-//    }
-//    stringa[count] = '\0';
-//    return stringa;
-
-
+    else {
+        return stdin_buffer[0];
+    }
 }
 
-static inline char *Acquisisci_Stringa() {
-    return _Acquisisci_Stringa();
-};
+static inline void stdin_loadrow(){
+    if (fgets(stdin_buffer, stdin_buffer_size, stdin) == NULL && feof(stdin)){}
+}
 
+static inline void stdin_parserow(int size, unsigned long int *ptr){
+    char* tmp_ptr = stdin_buffer;
+    for (int i = 0;i < size; i++){
+        unsigned long int toReturn = 0;
+        while (*tmp_ptr != ',' && *tmp_ptr != '\n' ){
+            toReturn *= 10;
+            toReturn += (*tmp_ptr) - 48;
+            tmp_ptr++;
+        }
+
+        tmp_ptr++;
+        *ptr = toReturn;
+        ptr++;
+    }
+}
+
+//    if (stdin_buffer[stdin_buffer_pos] == '\0'){
+//        if (fgets(stdin_buffer, STDIN_BUFFER_SIZE, stdin) == NULL && feof(stdin)){
+//            return EOF;
+//        }
+//        else {
+//            stdin_buffer_pos = 0;
+//        }
+//    }
+//    char toReturn = stdin_buffer[stdin_buffer_pos];
+//    stdin_buffer_pos++;
+//    return toReturn;
+//    return stdin_buffer[stdin_buffer_pos++];
+//return getc_unlocked(stdin);
+//}
+
+//
+//inline static void stdin_refill(){
+//    read
+//}
 //-------------------------------------------   LIBRERIA    ----------------------------------------------------------//
-
 
 typedef struct {
     unsigned long int nome;
@@ -142,9 +89,7 @@ void MERGE(nome_punteggio *classifica, unsigned long int start, unsigned long in
 
 void MERGESORT(nome_punteggio *classifica, unsigned long int start, unsigned long int final);
 
-int Identifica_Comando(char *command);
-
-void Acquisisci_Matrice(unsigned long int **matrice, unsigned int dimensione, char *stringa);
+void Acquisisci_Matrice(unsigned long int **matrice, int dimensione);
 
 unsigned long int
 CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo *grafo,
@@ -153,48 +98,33 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
 void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione);
 
 
-void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
-
 unsigned long int Find_Next(nodo **priority, unsigned long int peso_attuale, unsigned long int size);
-
-
 
 
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
 
 int main() {
-    initAcquisisciStringa();
-
-
+//    stdin_buffer = malloc(STDIN_BUFFER_SIZE);
 #ifdef DEBUG
     FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/"DEBUG, "r", stdin);
 #endif
-    //unsigned long int score;
-    unsigned long int n_node;
+    int n_node;
     unsigned long int n_elementi_classifica;
-    int command_id;
     unsigned long int i = 0;
     unsigned long int peggiore = 0;
     unsigned long int contatoregrafi = 0;
-    char *stringa = NULL;
-    char *eptr;
-    stringa = calloc(20, sizeof(char));
 
-    stringa = Acquisisci_Stringa();
-    n_node = strtoul(stringa, &eptr, 10);
+    if (scanf("%d %lu\n", &n_node, &n_elementi_classifica) != 2){
+        return -1;
+    }
 
-    stringa = Acquisisci_Stringa();
-    n_elementi_classifica = strtoul(stringa, &eptr, 10);
-
-
+    stdin_init(n_node);
+//    printf("%lu %lu\n", n_node, n_elementi_classifica);
 
     //Creo la classifica con n_elementi_classifica+1 elementi
     //L'elemento in più lo usero per aggiungere gli elementi partendo dalla coda
     nome_punteggio *classifica = (nome_punteggio *) malloc(
             (n_elementi_classifica + 1) * sizeof(nome_punteggio));
-
-    //Inizializza_Classifica(classifica, n_elementi_classifica + 1);
-
 
 
     //Creo la matrice di adiacenza contenente i costi delle transizioni
@@ -213,18 +143,15 @@ int main() {
 
 
     while (1) {
-        //printf("%lu\n", contatoregrafi);
-        stringa = Acquisisci_Stringa();
-        command_id = Identifica_Comando(stringa);
-        switch (command_id) {
-            case 1:
-                //printf("Identificato AggiungiGrafo\n");
+        stdin_loadrow();
+        int cmd = stdin_getfch();
+//        printf("Command %c\n", cmd);
+        switch (cmd) {
+            case 'A':
+//                printf("Identificato AggiungiGrafo\n");
 
-//                if (contatoregrafi == 8){
-//                    printf("gigi\n");
-//                }
                 Inizializza_Grafo(grafo, n_node);
-                Acquisisci_Matrice(matr_costi, n_node, stringa);
+                Acquisisci_Matrice(matr_costi, n_node);
 
 
                 //QUESTO IF VERIFICA CHE CI SIANO SUFFICIENTI GRAFI PER RIEMPIRE LA CLASSIFICA.
@@ -281,8 +208,8 @@ int main() {
                 break;
 
 
-            case 2:
-                //printf("Identificato TopK\n");
+            case 'T':
+//                printf("Identificato TopK\n");
                 if (contatoregrafi > 0) {
                     if (contatoregrafi < n_elementi_classifica) {
                         print_classifica(classifica, contatoregrafi);
@@ -294,8 +221,8 @@ int main() {
                 }
                 break;
 
-            case 3:
-                //printf("Identificato END\n");
+            case EOF:
+//                printf("Identificato END\n");
                 free(priority_queue);
                 free(matr_costi);
                 free(classifica);
@@ -308,12 +235,11 @@ int main() {
 
 
             default:
-                printf("Error in 'identifica comando @ %lu (%s)'\n", contatoregrafi, stringa);
+                printf("Error in 'identifica comando @ %lu (%d)'\n", contatoregrafi, cmd);
                 return -1;
         }
     }
 }
-
 
 void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_da_stampare) {
 
@@ -400,58 +326,13 @@ void MERGESORT(nome_punteggio *classifica, unsigned long int start, unsigned lon
     }
 }
 
-int Identifica_Comando(char *command) {
+void Acquisisci_Matrice(unsigned long int **matrice, int dimensione) {
 
-    if (strcmp(command, "TopK") == 0) {
-        //printf("TopK\n");
-        return 2;
-    }
-    if (strcmp(command, "AggiungiGrafo") == 0) {
-        //printf("AggiungiGrafo\n");
-        return 1;
-    }
-    if (strcmp(command, "END") == 0) {
-        //printf("END\n");
-        return 3;
-    }
-    printf("Identificato Niente\n");
-    return -1;
-}
-
-void Acquisisci_Matrice(unsigned long int **matrice, unsigned int dimensione, char *stringa) {
-
-    unsigned long int i, j;
-    char *pEnd;
-
-    //------------------------DEBUG------------------------------//
-
-//    for (i = 0; i < dimensione; i++) {
-//        for (j = 0; j < dimensione; j++) {
-//            stringa = Acquisisci_Stringa(stringa);
-//            matrice[i][j] = strtoull(stringa, &pEnd , 10);
-//        }
-//    }
-//
-//
-//    for (i = 0; i < dimensione; i++) {
-//        for (j = 0; j < dimensione - 1; j++) {
-//            printf("%lu,", matrice[i][j]);
-//        }
-//        printf("%lu\n", matrice[i][j]);
-//    }
-
-
-
-    //-----------------------------------------------------------//
-
+    int i;
     for (i = 0; i < dimensione; i++) {
-        for (j = 0; j < dimensione; j++) {
-            matrice[i][j] = strtol(Acquisisci_Stringa(), &pEnd, 10);
-//            Acquisisci_Stringa();
-        }
+        stdin_loadrow();
+        stdin_parserow(dimensione, matrice[i]);
     }
-
-
 }
 
 unsigned long int
@@ -462,7 +343,6 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
     unsigned long int trovati = 1;
     unsigned long int tot = 0;
     unsigned long int nuovo_peso;
-    //bool cambiato_punteggio = false;
 
     /*
      *
@@ -505,16 +385,6 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
                     }
                 }
             }
-
-
-/*
-
-            if (cambiato_punteggio == true) {
-                Insertion_Sort(priority_queue, k + 1, trovati - 1);
-                cambiato_punteggio = false;
-            }
-
-*/
         }
         grafo[i].esaminato = true;
         tot = tot + grafo[i].peso;
@@ -543,23 +413,6 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
 
 }
 
-void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size) {
-    unsigned long int i, j, k;
-
-    for (i = start; i < size; i++) {
-        k = priority[i]->peso;
-        j = i - 1;
-
-        while (j >= start && priority[j]->peso > k) {
-            nodo *tmp = priority[j + 1];
-            priority[j + 1] = priority[j];
-            priority[j] = tmp;
-            j = j - 1;
-        }
-        priority[j + 1]->peso = k;
-    }
-}
-
 unsigned long int Find_Next(nodo **priority, unsigned long int peso_attuale, unsigned long int size) {
     unsigned long int n;
     unsigned long int next = priority[size]->nome;
@@ -586,6 +439,47 @@ unsigned long int Find_Next(nodo **priority, unsigned long int peso_attuale, uns
 
 
 //------------------------------------------------------REMINISCENZE--------------------------------------------------//
+
+
+
+//
+//void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size) {
+//    unsigned long int i, j, k;
+//
+//    for (i = start; i < size; i++) {
+//        k = priority[i]->peso;
+//        j = i - 1;
+//
+//        while (j >= start && priority[j]->peso > k) {
+//            nodo *tmp = priority[j + 1];
+//            priority[j + 1] = priority[j];
+//            priority[j] = tmp;
+//            j = j - 1;
+//        }
+//        priority[j + 1]->peso = k;
+//    }
+//}
+//
+//int Identifica_Comando(char *command) {
+//
+//    if (strcmp(command, "TopK") == 0) {
+//        //printf("TopK\n");
+//        return 2;
+//    }
+//    if (strcmp(command, "AggiungiGrafo") == 0) {
+//        //printf("AggiungiGrafo\n");
+//        return 1;
+//    }
+//    if (strcmp(command, "END") == 0) {
+//        //printf("END\n");
+//        return 3;
+//    }
+//    printf("Identificato Niente\n");
+//    return -1;
+//}
+
+
+
 /*
 bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev);
 
@@ -625,6 +519,11 @@ void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long
     }
 }
 
+int Identifica_Comando(char *command);
+
+void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
+
+
 unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final) {
 
     unsigned long int el = priority[final]->peso;
@@ -662,3 +561,113 @@ bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int i
     return ritorno;
 }
 */
+
+//
+//char *split_base;
+//char *split_init;
+//char *split_str;
+//
+//const int SPLIT_SIZE = 512*1024;
+//const char *SPLIT_DELIMITER = " ,\n";
+//char *SPLIT_INIT_STRING = "\0";
+//
+//void initAcquisisciStringa() {
+//    split_base = malloc(SPLIT_SIZE + 1);
+//    *split_base = '\0';
+//    split_init = split_base - 1;
+//    split_str = split_base - 1;
+//}
+//
+//static inline char *_Acquisisci_Stringa() {
+//    split_init = split_str + 1;
+//    split_str = split_init;
+//    while (*split_str != ',' && *split_str != ' ' && *split_str != '\n') {
+////        printf("->WHILE: [%s] [%s] [%s]\n", split_base, split_init, split_str);
+//        if (*split_str == '\0') {
+//            int nchar = split_str - split_init;
+//            memmove(split_base, split_init, nchar);
+//            split_init = split_base;
+//            split_str = split_base + nchar;
+//            //printf("REALLOC1 %d\n", (SPLIT_SIZE - nchar));
+//            int nread = fread(split_str, 1, SPLIT_SIZE - nchar, stdin);
+//            //printf("REALLOC2 %d\n", nread);
+//            if (nread == 0 && feof(stdin)) {
+//                return "END";
+//            }
+//            *(split_str + 1 + nread) = '\0';
+//        } else {
+//            split_str++;
+//        }
+//    }
+//
+//    *split_str = '\0';
+////    printf("RETURN %s\n", split_init);
+//    return split_init;
+////        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
+////    {
+////        input = getc_unlocked(stdin);
+////        if (input == ',' || input == ' ' || input == '\n') {
+////            break;
+////        }
+////        if (input == EOF) {
+////            return "END";
+////        }
+////        stringa[count++] = input;
+////
+////    }
+////    stringa[count] = '\0';
+////    return stringa;
+////
+////
+////
+////
+////    char* toReturn = strtok(stringa, SPLIT_DELIMITER);
+////
+////    if (toReturn != NULL){
+////        return toReturn;
+////    }
+////    else {
+////        int r = fread(new_str, 1, SPLIT_SIZE, stdin);
+////        new_str[r + 1] = '\0';
+////
+////        if (r == 0){
+////            if (feof(stdin)){
+////                return "END";
+////            }
+////        }
+////
+////        char* tmp = new_str;
+////        new_str = current_str;
+////        current_str = tmp;
+////        tmp_str = current_str;
+////        return _Acquisisci_Stringa(tmp_str);
+////
+////    }
+//
+//
+////
+////    char input;
+////    int count = 0;
+////
+////    while (1)
+////        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
+////    {
+////        input = getc_unlocked(stdin);
+////        if (input == ',' || input == ' ' || input == '\n') {
+////            break;
+////        }
+////        if (input == EOF) {
+////            return "END";
+////        }
+////        stringa[count++] = input;
+////
+////    }
+////    stringa[count] = '\0';
+////    return stringa;
+//
+//
+//}
+//
+//static inline char *Acquisisci_Stringa() {
+//    return _Acquisisci_Stringa();
+//};
