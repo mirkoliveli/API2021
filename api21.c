@@ -61,10 +61,12 @@ static inline void stdin_init(int length);
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
 
 int main() {
-//    stdin_buffer = malloc(STDIN_BUFFER_SIZE);
+
 #ifdef DEBUG
     FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/"DEBUG, "r", stdin);
 #endif
+
+
     int n_node;
     unsigned long int n_elementi_classifica;
     unsigned long int i = 0;
@@ -116,12 +118,6 @@ int main() {
                 if (contatoregrafi < n_elementi_classifica) {
 
                     classifica[contatoregrafi].nome = contatoregrafi;
-
-                    //-------------------------CALCOLO PER DEBUG-------------------------//
-//                    score = CalcoloPunteggio(matr_costi, n_node, grafo, priority_queue);
-//                    classifica[contatoregrafi].punteggio = score;
-                    //-------------------------------------------------------------------//
-
                     classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                             priority_queue);
                     if (peggiore == 0) {
@@ -137,11 +133,6 @@ int main() {
                 else {
 
                     classifica[n_elementi_classifica].nome = contatoregrafi;
-                    //-------------------------CALCOLO PER DEBUG-------------------------//
-//                    score = CalcoloPunteggio(matr_costi, n_node, grafo, priority_queue);
-//                    classifica[n_elementi_classifica].punteggio = score;
-                    //-------------------------------------------------------------------//
-
                     classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                                    priority_queue);
 
@@ -153,13 +144,6 @@ int main() {
                         peggiore = classifica[n_elementi_classifica].punteggio;
                     }
                 }
-
-                //-----------------STAMPA PUNTEGGI DI DEBUG-----------------------//
-                // cerca la variabile score
-
-//                printf("%lu, %lu\n", contatoregrafi, score);
-//
-                //----------------------------------------------------------------//
 
                 contatoregrafi++;
                 break;
@@ -204,12 +188,12 @@ void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_d
     unsigned long int i;
 
     //---------STAMPA DI DEBUG----------//
+    /*
+           for (i = 0; i < n_elementi_da_stampare; i++) {
+               printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
+           }
 
-//        printf("\n\n\n\n\nLa tua classifica: \n");
-//        for (i = 0; i < n_elementi_da_stampare; i++) {
-//            printf("POSIZIONE %lu\n  Grafo %lu\n  Punteggio: %lu\n", i + 1, classifica[i].nome, classifica[i].punteggio);
-//        }
-//        printf("\n\n\n");
+   */
 
 
     //------STAMPA PER PROGETTO------//
@@ -330,8 +314,7 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
         i = Find_Next(priority_queue, trovati - 1);
 
         for (j = 1; j < dimensione; j++) {
-//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato
-            //&& Antenato(grafo, i, j)
+//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato &&
             if (matrice[i][j] != 0
                     ) {
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
@@ -378,11 +361,11 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
 
 
 unsigned long int Find_Next(nodo **priority, unsigned long int size) {
+
     unsigned long int n;
     unsigned long int next = priority[size]->nome;
     unsigned long int migliore = MAX;
     unsigned long int peso_da_cercare;
-
 
     for (n = 1; n <= size; n++) {
         if (!priority[n]->esaminato) {
@@ -394,7 +377,6 @@ unsigned long int Find_Next(nodo **priority, unsigned long int size) {
         }
     }
 
-    //printf("next: %lu, ", next);
     return next;
 }
 
