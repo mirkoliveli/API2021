@@ -6,7 +6,9 @@
 //#define DEBUG "input_1"
 //#define DEBUG "generato.txt"
 //#define DEBUG "50x50.txt"
+//#define DEBUG "8x20000.txt"
 #define MAX 4294967295
+
 
 static char *stdin_buffer;
 static int stdin_buffer_size;
@@ -33,10 +35,10 @@ void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_d
 void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, unsigned long int startdacopiare,
                      unsigned long int startdovecopiare, unsigned long int quanticopiarne);
 
-void MERGE(nome_punteggio *classifica, unsigned long int start, unsigned long int centro,
+void MERGE(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int centro,
            unsigned long int final);
 
-void MERGESORT(nome_punteggio *classifica, unsigned long int start, unsigned long int final);
+void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int final);
 
 void Acquisisci_Matrice(unsigned long int **matrice, int dimensione);
 
@@ -84,6 +86,9 @@ int main() {
     //L'elemento in più lo usero per aggiungere gli elementi partendo dalla coda
     nome_punteggio *classifica = (nome_punteggio *) malloc(
             (n_elementi_classifica + 1) * sizeof(nome_punteggio));
+
+    //Alloco la classifica temporanea per riordinare quella presente
+    nome_punteggio *temp = (nome_punteggio *) malloc((n_elementi_classifica + 1) * sizeof(nome_punteggio));
 
 
     //Creo la matrice di adiacenza contenente i costi delle transizioni
@@ -140,7 +145,7 @@ int main() {
                     //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
                     //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
                     if (peggiore > classifica[n_elementi_classifica].punteggio) {
-                        MERGESORT(classifica, 0, n_elementi_classifica);
+                        MERGESORT(classifica, temp, 0, n_elementi_classifica);
                         peggiore = classifica[n_elementi_classifica].punteggio;
                     }
                 }
@@ -168,6 +173,7 @@ int main() {
                 free(matr_costi);
                 free(classifica);
                 free(grafo);
+                free(temp);
 
 #ifdef DEBUG
                 fclose(input);
@@ -217,13 +223,13 @@ void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, uns
 }
 
 
-void MERGE(nome_punteggio *classifica, unsigned long int start, unsigned long int centro,
+void MERGE(nome_punteggio *classifica,nome_punteggio *temp, unsigned long int start, unsigned long int centro,
            unsigned long int final) {
     unsigned long int i = start;
     unsigned long int j = centro + 1;
     unsigned long int k = 0;
 
-    nome_punteggio *temp = (nome_punteggio *) malloc((final + 1) * sizeof(nome_punteggio));
+
 
     while (i <= centro && j <= final) {
         if (classifica[i].punteggio <= classifica[j].punteggio) {
@@ -253,21 +259,20 @@ void MERGE(nome_punteggio *classifica, unsigned long int start, unsigned long in
         }
     }
     copy_classifica(temp, classifica, 0, start, k);
-    free(temp);
 
 }
 
 
-void MERGESORT(nome_punteggio *classifica, unsigned long int start, unsigned long int final) {
+void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int final) {
     // start: indice iniziale dell'array
     // final: indice finale dell'array
     // centro: indice intermedio dell'array
     // Divido l'array in 2 sottoarray; Se l'array ha un elemento, è già ordinato e non faccio nulla.
     if (start < final) {
         unsigned long int centro = (start + final) / 2;
-        MERGESORT(classifica, start, centro);
-        MERGESORT(classifica, centro + 1, final);
-        MERGE(classifica, start, centro, final);
+        MERGESORT(classifica, temp, start, centro);
+        MERGESORT(classifica, temp, centro + 1, final);
+        MERGE(classifica, temp, start, centro, final);
     }
 }
 
@@ -423,12 +428,6 @@ static inline void stdin_init(int length) {
 
 //------------------------------------------------------REMINISCENZE--------------------------------------------------//
 
-
-
-
-
-
-
 /*
 bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev);
 
@@ -437,6 +436,10 @@ unsigned long int Partition(nodo **priority, unsigned long int start, unsigned l
 void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final);
 
 void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long size);
+
+ int Identifica_Comando(char *command);
+
+void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
 
 unsigned long int Funzione_Buffa (nodo **priority, unsigned long int i, unsigned long int j);
 */
@@ -503,10 +506,6 @@ void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long
         Quick_Sort_Priority(priority, partitioned + 1, final);
     }
 }
-
-int Identifica_Comando(char *command);
-
-void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
 
 
 unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final) {
