@@ -1,0 +1,233 @@
+
+//------------------------------------------------------REMINISCENZE--------------------------------------------------//
+
+/*
+bool Antenato(nodo *grafo, u_int32_t ind_analizzare, u_int32_t ind_prev);
+
+u_int32_t Partition(nodo **priority, u_int32_t start, u_int32_t final);
+
+void Quick_Sort_Priority(nodo **priority, u_int32_t start, u_int32_t final);
+
+void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long size);
+
+ int Identifica_Comando(char *command);
+
+void Insertion_Sort(nodo **priority, u_int32_t start, u_int32_t size);
+
+u_int32_t Funzione_Buffa (nodo **priority, u_int32_t i, u_int32_t j);
+*/
+
+/*
+ * void Bubble_Sort_Priority(nodo **priority, u_int32_t start, u_int32_t size) {
+    u_int32_t i, j;
+
+
+    for (i = start; i < size - 1; i++) {
+        for (j = start; j < size - 1; j++) {
+            if (priority[j]->peso > priority[j + 1]->peso) {
+                nodo *tmp = priority[j + 1];
+                priority[j + 1] = priority[j];
+                priority[j] = tmp;
+            }
+        }
+    }
+
+}
+
+
+void Insertion_Sort(nodo **priority, u_int32_t start, u_int32_t size) {
+    u_int32_t i, j, k;
+
+    for (i = start; i < size; i++) {
+        k = priority[i]->peso;
+        j = i - 1;
+
+        while (j >= start && priority[j]->peso > k) {
+            nodo *tmp = priority[j + 1];
+            priority[j + 1] = priority[j];
+            priority[j] = tmp;
+            j = j - 1;
+        }
+        priority[j + 1]->peso = k;
+    }
+}
+
+int Identifica_Comando(char *command) {
+
+    if (strcmp(command, "TopK") == 0) {
+        //printf("TopK\n");
+        return 2;
+    }
+    if (strcmp(command, "AggiungiGrafo") == 0) {
+        //printf("AggiungiGrafo\n");
+        return 1;
+    }
+    if (strcmp(command, "END") == 0) {
+        //printf("END\n");
+        return 3;
+    }
+    printf("Identificato Niente\n");
+    return -1;
+}
+
+void Quick_Sort_Priority(nodo **priority, u_int32_t start, u_int32_t final) {
+
+    u_int32_t partitioned;
+    if (start < final) {
+        partitioned = Partition(priority, start, final);
+        Quick_Sort_Priority(priority, start, partitioned - 1);
+        Quick_Sort_Priority(priority, partitioned + 1, final);
+    }
+}
+
+
+u_int32_t Partition(nodo **priority, u_int32_t start, u_int32_t final) {
+
+    u_int32_t el = priority[final]->peso;
+    u_int32_t i = start - 1;
+    u_int32_t j;
+    for (j = start; j <= final - 1; j++) {
+        if (priority[j]->peso <= el) {
+            i++;
+            nodo *tmp = priority[i];
+            priority[i] = priority[j];
+            priority[j] = tmp;
+        }
+    }
+    nodo *tmp = priority[i + 1];
+    priority[i + 1] = priority[final];
+    priority[final] = tmp;
+
+    return (i + 1);
+
+}
+
+bool Antenato(nodo *grafo, u_int32_t ind_analizzare, u_int32_t ind_prev) {
+
+    bool ritorno = true;
+
+    if (ind_analizzare == 0) {
+        return true;
+    }
+    if (grafo[ind_analizzare].nodo_precedente != ind_prev) {
+        ritorno = Antenato(grafo, grafo[ind_analizzare].nodo_precedente, ind_prev);
+    }
+    if (grafo[ind_analizzare].nodo_precedente == ind_prev) {
+        return false;
+    }
+    return ritorno;
+}
+
+
+char *split_base;
+char *split_init;
+char *split_str;
+
+const int SPLIT_SIZE = 512*1024;
+const char *SPLIT_DELIMITER = " ,\n";
+char *SPLIT_INIT_STRING = "\0";
+
+void initAcquisisciStringa() {
+    split_base = malloc(SPLIT_SIZE + 1);
+    *split_base = '\0';
+    split_init = split_base - 1;
+    split_str = split_base - 1;
+}
+
+static inline char *_Acquisisci_Stringa() {
+    split_init = split_str + 1;
+    split_str = split_init;
+    while (*split_str != ',' && *split_str != ' ' && *split_str != '\n') {
+//        printf("->WHILE: [%s] [%s] [%s]\n", split_base, split_init, split_str);
+        if (*split_str == '\0') {
+            int nchar = split_str - split_init;
+            memmove(split_base, split_init, nchar);
+            split_init = split_base;
+            split_str = split_base + nchar;
+            //printf("REALLOC1 %d\n", (SPLIT_SIZE - nchar));
+            int nread = fread(split_str, 1, SPLIT_SIZE - nchar, stdin);
+            //printf("REALLOC2 %d\n", nread);
+            if (nread == 0 && feof(stdin)) {
+                return "END";
+            }
+            *(split_str + 1 + nread) = '\0';
+        } else {
+            split_str++;
+        }
+    }
+
+    *split_str = '\0';
+//    printf("RETURN %s\n", split_init);
+    return split_init;
+//        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
+//    {
+//        input = getc_unlocked(stdin);
+//        if (input == ',' || input == ' ' || input == '\n') {
+//            break;
+//        }
+//        if (input == EOF) {
+//            return "END";
+//        }
+//        stringa[count++] = input;
+//
+//    }
+//    stringa[count] = '\0';
+//    return stringa;
+//
+//
+//
+//
+//    char* toReturn = strtok(stringa, SPLIT_DELIMITER);
+//
+//    if (toReturn != NULL){
+//        return toReturn;
+//    }
+//    else {
+//        int r = fread(new_str, 1, SPLIT_SIZE, stdin);
+//        new_str[r + 1] = '\0';
+//
+//        if (r == 0){
+//            if (feof(stdin)){
+//                return "END";
+//            }
+//        }
+//
+//        char* tmp = new_str;
+//        new_str = current_str;
+//        current_str = tmp;
+//        tmp_str = current_str;
+//        return _Acquisisci_Stringa(tmp_str);
+//
+//    }
+
+
+//
+//    char input;
+//    int count = 0;
+//
+//    while (1)
+//        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
+//    {
+//        input = getc_unlocked(stdin);
+//        if (input == ',' || input == ' ' || input == '\n') {
+//            break;
+//        }
+//        if (input == EOF) {
+//            return "END";
+//        }
+//        stringa[count++] = input;
+//
+//    }
+//    stringa[count] = '\0';
+//    return stringa;
+
+
+}
+
+static inline char *Acquisisci_Stringa() {
+    return _Acquisisci_Stringa();
+};
+
+*/
+
+

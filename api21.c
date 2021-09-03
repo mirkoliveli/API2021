@@ -5,31 +5,15 @@
 #include <assert.h>
 #include <stdint.h>
 
-//#define DEBUG "input_1"
+#define DEBUG "input_1"
 //#define DEBUG "generato.txt"
 //#define DEBUG "50x50.txt"
 //#define DEBUG "8x20000.txt"
 #define MAX UINT64_MAX
-
+#define INSERIMENTO_ORDINATO_CLEANUP 25000
 
 static char *stdin_buffer;
 static u_int64_t stdin_buffer_size;
-
-typedef struct nodo nodo;
-
-typedef struct lnodo_t {
-    uint64_t peso;
-    void* ptr;
-    struct lnodo_t* next;
-} lnodo_t;
-
-//-------------------------------------------   LIBRERIA    ----------------------------------------------------------//
-
-typedef struct {
-    u_int64_t nome;
-    u_int64_t punteggio;
-} nome_punteggio;
-
 typedef struct {
     u_int64_t nome;
     u_int64_t peso;
@@ -37,6 +21,22 @@ typedef struct {
     bool raggiunto;
     bool esaminato;
 } nodo;
+typedef struct nome_punteggio {
+    uint64_t nome;
+    uint64_t punteggio;
+    struct nome_punteggio* next;
+} nome_punteggio;
+
+static nome_punteggio * Inserimento_Ordinato_FreeList;
+static uint64_t Inserimento_Ordinato_Cleanup_Count;
+
+//-------------------------------------------   LIBRERIA    ----------------------------------------------------------//
+//
+//typedef struct {
+//    u_int64_t nome;
+//    u_int64_t punteggio;
+//} nome_punteggio;
+
 
 void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare);
 
@@ -66,21 +66,98 @@ static inline int stdin_getfch();
 
 static inline void stdin_init(u_int64_t length);
 
-void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
+//void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
 
 void Inizializza_Classifica(nome_punteggio *classifica, u_int64_t elem_class);
 
 u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem);
 
+
+nome_punteggio * Inserimento_Ordinato_2_Get(){
+    if (Inserimento_Ordinato_FreeList == NULL){
+        return malloc(sizeof (nome_punteggio));
+    }
+    else {
+        nome_punteggio * toReturn = Inserimento_Ordinato_FreeList;
+        Inserimento_Ordinato_FreeList = toReturn->next;
+        return toReturn;
+    }
+}
+
+nome_punteggio * Inserimento_Ordinato_2_Put(nome_punteggio* element){
+    element->next = Inserimento_Ordinato_FreeList;
+    Inserimento_Ordinato_FreeList = element;
+}
+
+void Inserimento_Ordinato_2_Free(nome_punteggio* element){
+    free(element);
+}
+
+void Inserimento_Ordinato_Cleanup(nome_punteggio *list, uint64_t max_size){
+    uint64_t i = 0;
+    while (list != NULL && i < max_size){
+        list = list->next;
+        i++;
+    }
+
+    if (list == NULL) {
+        return;
+    }
+
+    nome_punteggio * tmp = list->next;
+    list->next = NULL;
+
+    while (tmp != NULL){
+        list = tmp;
+        tmp = list->next;
+        Inserimento_Ordinato_2_Put(list);
+    }
+}
+
+void Inserimento_Ordinato_2(nome_punteggio* list, nome_punteggio* data, uint64_t max_size){
+    int i = 0;
+    while (list != NULL && i < max_size && list->punteggio < data->punteggio){
+        list = list->next;
+        i++;
+    }
+
+    data->next = list;
+    list->next = data;
+
+    Inserimento_Ordinato_Cleanup_Count++;
+    if (Inserimento_Ordinato_Cleanup_Count > INSERIMENTO_ORDINATO_CLEANUP) {
+        Inserimento_Ordinato_Cleanup(list, max_size);
+        Inserimento_Ordinato_Cleanup_Count = 0;
+    }
+}
+
+//
+//void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem) {
+//    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio){
+//        // skip
+//        return;
+//    }
+//
+//    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
+//
+//    assert(index <= numelem);
+//
+//    if (index < numelem){
+//        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
+//    }
+//
+//    classifica[index].nome = nuovo_elem.nome;
+//    classifica[index].punteggio = nuovo_elem.punteggio;
+//
+////    print_classifica(classifica, numelem + 1);
+//}
+//
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
 
 int main() {
-
 #ifdef DEBUG
     FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/"DEBUG, "r", stdin);
 #endif
-
-
     u_int64_t n_node;
     u_int64_t n_elementi_classifica;
     u_int64_t i = 0;
@@ -96,13 +173,13 @@ int main() {
 
     //Creo la classifica con n_elementi_classifica+1 elementi
     //L'elemento in più lo usero per aggiungere gli elementi partendo dalla coda
-    nome_punteggio *classifica = (nome_punteggio *) malloc(
-            (n_elementi_classifica + 1) * sizeof(nome_punteggio));
-
-    Inizializza_Classifica(classifica, n_elementi_classifica + 1);
-
+//    nome_punteggio *classifica = (nome_punteggio *) malloc(
+//            (n_elementi_classifica + 1) * sizeof(nome_punteggio));
+//
+//    Inizializza_Classifica(classifica, n_elementi_classifica + 1);
+nome_punteggio *classifica = NULL;
     //Alloco la classifica temporanea per riordinare quella presente
-    nome_punteggio *temp = (nome_punteggio *) malloc((n_elementi_classifica + 1) * sizeof(nome_punteggio));
+//    nome_punteggio *temp = (nome_punteggio *) malloc((n_elementi_classifica + 1) * sizeof(nome_punteggio));
 
 
     //Creo la matrice di adiacenza contenente i costi delle transizioni
@@ -112,13 +189,11 @@ int main() {
         i++;
     }
 
-
     //Alloco la memoria per il grafo. Grafo[] di nodi
     nodo *grafo = (nodo *) malloc(n_node * sizeof(nodo));
 
     //Alloco la priority queue
     nodo **priority_queue = (nodo **) malloc(n_node * sizeof(nodo *));
-
 
     while (1) {
         stdin_loadrow();
@@ -131,21 +206,20 @@ int main() {
                 Inizializza_Grafo(grafo, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
-                nome_punteggio new_p = {
-                        .nome = contatoregrafi,
-                        .punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                      priority_queue)
-                };
+                nome_punteggio* new_p = Inserimento_Ordinato_2_Get();
+                new_p->nome = contatoregrafi,
+                new_p->punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
+                                                    priority_queue);
 
+//                Inserimento_Ordinato_2_Get()
 //                if (new_p.punteggio <= peggiore){
-                    Inserimento_Ordinato(classifica, n_elementi_classifica, new_p);
-//                }
+//                    Inserimento_Ordinato(classifica, n_elementi_classifica, new_p);
 
+//                }
+                Inserimento_Ordinato_2_Put(new_p);
 
                 contatoregrafi++;
                 break;
-
-
             case 'T':
 //                printf("Identificato TopK\n");
                 if (contatoregrafi > 0) {
@@ -165,7 +239,7 @@ int main() {
                 free(matr_costi);
                 free(classifica);
                 free(grafo);
-                free(temp);
+//                free(temp);
 
 #ifdef DEBUG
                 fclose(input);
@@ -179,31 +253,35 @@ int main() {
     }
 }
 
-
 void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare) {
-
-    u_int64_t i;
-
+    printf("");
+    u_int64_t i = 0;
+    while(classifica != NULL && i < n_elementi_da_stampare){
+        i++;
+        classifica = classifica->next;
+        printf("%lu, %lu\n", classifica->nome, classifica->punteggio);
+    }
     //---------STAMPA DI DEBUG----------//
 
-
-#ifdef DEBUG
-           for (i = 0; i < n_elementi_da_stampare; i++) {
-               printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
-           }
-    printf("-\n");
-    int a = 1+1;
-    a++;
-   return;
-#endif
-
-
-    //------STAMPA PER PROGETTO------//
-
-    for (i = 0; i < n_elementi_da_stampare - 1; i++) {
-        printf("%lu ", classifica[i].nome);
-    }
-    printf("%lu\n", classifica[i].nome);
+//
+//#ifdef DEBUG
+//
+////           for (i = 0; i < n_elementi_da_stampare; i++) {
+////               printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
+////           }
+////    printf("-\n");
+////    int a = 1+1;
+////    a++;
+//   return;
+//#endif
+//        printf("CLASSIFICA TODO");
+//
+//    //------STAMPA PER PROGETTO------//
+////
+////    for (i = 0; i < n_elementi_da_stampare - 1; i++) {
+////        printf("%lu ", classifica[i].nome);
+////    }
+////    printf("%lu\n", classifica[i].nome);
 }
 
 
@@ -415,77 +493,46 @@ static inline void stdin_init(u_int64_t length) {
     stdin_buffer_size = length * 10 + length + 10;
     stdin_buffer = malloc(stdin_buffer_size);
 }
-
-
-void Inserimento_Ordinato_2(lnodo_t* list, lnodo_t* data){
-    while (list->peso < data->peso){
-        if (list == NULL){
-            return;
-        }
-        list = list->next;
-    }
-}
-
-void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem) {
-
-
-    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio){
-        // skip
-        return;
-    }
-
-    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
-
-    assert(index <= numelem);
-
-    if (index < numelem){
-        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
-    }
-
-    classifica[index].nome = nuovo_elem.nome;
-    classifica[index].punteggio = nuovo_elem.punteggio;
-
-//    print_classifica(classifica, numelem + 1);
-}
-
-
-u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem){
-
-
-    u_int64_t mezzo = partenza + (num_elem - partenza)/2;
-
-    if (da_trovare.punteggio < classifica[partenza].punteggio){
-        return partenza;
-    }
-
-    if (classifica[mezzo].punteggio == da_trovare.punteggio){
-        return mezzo + 1;
-    }
-
-    if (da_trovare.punteggio > classifica[mezzo].punteggio){
-        return Ricerca_Binaria(classifica, da_trovare, mezzo + 1, num_elem);
-    }
-
-    return Ricerca_Binaria(classifica, da_trovare, partenza, mezzo - 1);
-
-}
+//
+//u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem){
+//
+//
+//    u_int64_t mezzo = partenza + (num_elem - partenza)/2;
+//
+//    if (da_trovare.punteggio < classifica[partenza].punteggio){
+//        return partenza;
+//    }
+//
+//    if (classifica[mezzo].punteggio == da_trovare.punteggio){
+//        return mezzo + 1;
+//    }
+//
+//    if (da_trovare.punteggio > classifica[mezzo].punteggio){
+//        return Ricerca_Binaria(classifica, da_trovare, mezzo + 1, num_elem);
+//    }
+//
+//    return Ricerca_Binaria(classifica, da_trovare, partenza, mezzo - 1);
+//
+//}
 
 
 void Inizializza_Classifica(nome_punteggio *classifica, u_int64_t elem_class) {
-
-    int index = 0;
-//    nome_punteggio tmp;
-//    tmp.nome = MAX;
-//    tmp.punteggio = MAX;
-
-    while (index < elem_class) {
-//        memcpy(&(classifica[index]), &tmp, sizeof(nome_punteggio));
-        classifica[index].nome = MAX;
-        classifica[index].punteggio = MAX;
-        index++;
-    }
+//
+//    int index = 0;
+////    nome_punteggio tmp;
+////    tmp.nome = MAX;
+////    tmp.punteggio = MAX;
+//
+//    while (index < elem_class) {
+////        memcpy(&(classifica[index]), &tmp, sizeof(nome_punteggio));
+//        classifica[index].nome = MAX;
+//        classifica[index].punteggio = MAX;
+//        index++;
+//    }
 
 //    print_classifica(classifica, elem_class);
+
+classifica = NULL;
 
 }
 
