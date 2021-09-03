@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 
-//#define DEBUG "input_1"
+//#define DEBUG "input_2"
 //#define DEBUG "generato.txt"
 //#define DEBUG "50x50.txt"
-//#define DEBUG "8x20000.txt"
+#define DEBUG "8x20000.txt"
 #define MAX 4294967295
 
 
@@ -59,6 +60,9 @@ static inline int stdin_getfch();
 
 static inline void stdin_init(int length);
 
+void Inserimento_Ordinato(nome_punteggio *classifica, unsigned long int numelem, nome_punteggio nuovo_elem);
+
+void Inizializza_Classifica(nome_punteggio *classifica, unsigned long int elem_class);
 
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
 
@@ -74,6 +78,7 @@ int main() {
     unsigned long int i = 0;
     unsigned long int peggiore = 0;
     unsigned long int contatoregrafi = 0;
+    bool piena = false;
 
     if (scanf("%d %lu\n", &n_node, &n_elementi_classifica) != 2) {
         return -1;
@@ -86,6 +91,8 @@ int main() {
     //L'elemento in più lo usero per aggiungere gli elementi partendo dalla coda
     nome_punteggio *classifica = (nome_punteggio *) malloc(
             (n_elementi_classifica + 1) * sizeof(nome_punteggio));
+
+    Inizializza_Classifica(classifica, n_elementi_classifica + 1);
 
     //Alloco la classifica temporanea per riordinare quella presente
     nome_punteggio *temp = (nome_punteggio *) malloc((n_elementi_classifica + 1) * sizeof(nome_punteggio));
@@ -118,39 +125,27 @@ int main() {
                 Acquisisci_Matrice(matr_costi, n_node);
 
 
-                //QUESTO IF VERIFICA CHE CI SIANO SUFFICIENTI GRAFI PER RIEMPIRE LA CLASSIFICA.
-                //SE IF SODDISFATTO, CLASSIFICA NON PIENA, VA QUINDI AGGIUNTO IL NUOVO ELEMENTO IN CLASSIFICA
-                if (contatoregrafi < n_elementi_classifica) {
+                //----------------DA VALUTARE QUANDO CLASSIFICA NON PIENA!!!!!!----------------//
+                classifica[n_elementi_classifica].nome = contatoregrafi;
+                classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
+                                                                               priority_queue);
 
-                    classifica[contatoregrafi].nome = contatoregrafi;
-                    classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                                            priority_queue);
-                    if (peggiore == 0) {
-                        peggiore = classifica[contatoregrafi].punteggio;
-                    }
-
-                    if (peggiore < classifica[contatoregrafi].punteggio) {
-                        peggiore = classifica[contatoregrafi].punteggio;
-                    }
-
-                }
-                    //ENTRO IN QUESTO ELSE SE LA CLASSIFICA È PIENA
-                else {
-
-                    classifica[n_elementi_classifica].nome = contatoregrafi;
-                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                                                   priority_queue);
-
-
-                    //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
-                    //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
-                    if (peggiore > classifica[n_elementi_classifica].punteggio) {
-                        MERGESORT(classifica, temp, 0, n_elementi_classifica);
-                        peggiore = classifica[n_elementi_classifica].punteggio;
-                    }
+//                if (peggiore == 0) {
+//                    peggiore = classifica[n_elementi_classifica].punteggio;
+////                    Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
+//
+//                }
+                //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
+                //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
+                if (peggiore > classifica[n_elementi_classifica].punteggio || !piena) {
+                    Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
+                    peggiore = classifica[n_elementi_classifica - 1].punteggio;
                 }
 
                 contatoregrafi++;
+                if (contatoregrafi == n_elementi_classifica) {
+                    piena = true;
+                }
                 break;
 
 
@@ -223,12 +218,11 @@ void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, uns
 }
 
 
-void MERGE(nome_punteggio *classifica,nome_punteggio *temp, unsigned long int start, unsigned long int centro,
+void MERGE(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int centro,
            unsigned long int final) {
     unsigned long int i = start;
     unsigned long int j = centro + 1;
     unsigned long int k = 0;
-
 
 
     while (i <= centro && j <= final) {
@@ -423,7 +417,38 @@ static inline void stdin_init(int length) {
 }
 
 
+void Inserimento_Ordinato(nome_punteggio *classifica, unsigned long int numelem, nome_punteggio nuovo_elem) {
 
+    int index = 0;
+
+    while (classifica[index].punteggio < nuovo_elem.punteggio) {
+        index++;
+    }
+
+    if (index != numelem){
+        int gigi = numelem - index - 1;
+        assert(gigi > 0);
+        memmove(&(classifica[index + 1]), &(classifica[index]), (gigi) * sizeof(nome_punteggio));
+    }
+    classifica[index].nome = nuovo_elem.nome;
+    classifica[index].punteggio = nuovo_elem.punteggio;
+}
+
+
+void Inizializza_Classifica(nome_punteggio *classifica, unsigned long int elem_class) {
+
+    int index = 0;
+//    nome_punteggio tmp;
+//    tmp.nome = MAX;
+//    tmp.punteggio = MAX;
+
+    while (index < elem_class) {
+//        memcpy(&(classifica[index]), &tmp, sizeof(nome_punteggio));
+        classifica[index].nome = MAX;
+        classifica[index].punteggio = MAX;
+        index++;
+    }
+}
 
 
 //------------------------------------------------------REMINISCENZE--------------------------------------------------//
