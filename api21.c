@@ -3,66 +3,74 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stdint.h>
 
 //#define DEBUG "input_1"
 //#define DEBUG "generato.txt"
 //#define DEBUG "50x50.txt"
-#define DEBUG "8x20000.txt"
-#define MAX 4294967295
+//#define DEBUG "8x20000.txt"
+#define MAX UINT64_MAX
 
 
 static char *stdin_buffer;
-static int stdin_buffer_size;
+static u_int64_t stdin_buffer_size;
 
+typedef struct nodo nodo;
 
+typedef struct lnodo_t {
+    uint64_t peso;
+    void* ptr;
+    struct lnodo_t* next;
+} lnodo_t;
 
 //-------------------------------------------   LIBRERIA    ----------------------------------------------------------//
 
 typedef struct {
-    unsigned long int nome;
-    unsigned long int punteggio;
+    u_int64_t nome;
+    u_int64_t punteggio;
 } nome_punteggio;
 
 typedef struct {
-    unsigned long int nome;
-    unsigned long int peso;
-    unsigned long int nodo_precedente;
+    u_int64_t nome;
+    u_int64_t peso;
+    u_int64_t nodo_precedente;
     bool raggiunto;
     bool esaminato;
 } nodo;
 
-void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_da_stampare);
+void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare);
 
-void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, unsigned long int startdacopiare,
-                     unsigned long int startdovecopiare, unsigned long int quanticopiarne);
+void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_int64_t startdacopiare,
+                     u_int64_t startdovecopiare, u_int64_t quanticopiarne);
 
-void MERGE(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int centro,
-           unsigned long int final);
+void MERGE(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t centro,
+           u_int64_t final);
 
-void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int final);
+void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t final);
 
-void Acquisisci_Matrice(unsigned long int **matrice, int dimensione);
+void Acquisisci_Matrice(u_int64_t **matrice, u_int64_t dimensione);
 
-unsigned long int
-CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo *grafo,
+u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
                  nodo **priority_queue);
 
-void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione);
+void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione);
 
 
-unsigned long int Find_Next(nodo **priority, unsigned long int size);
+u_int64_t Find_Next(nodo **priority, u_int64_t size);
 
-static inline void stdin_parserow(int size, unsigned long int *ptr);
+static inline void stdin_parserow(u_int64_t size, u_int64_t *ptr);
 
 static inline void stdin_loadrow();
 
 static inline int stdin_getfch();
 
-static inline void stdin_init(int length);
+static inline void stdin_init(u_int64_t length);
 
-void Inserimento_Ordinato(nome_punteggio *classifica, unsigned long int numelem, nome_punteggio nuovo_elem);
+void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
 
-void Inizializza_Classifica(nome_punteggio *classifica, unsigned long int elem_class);
+void Inizializza_Classifica(nome_punteggio *classifica, u_int64_t elem_class);
+
+u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem);
 
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
 
@@ -73,14 +81,13 @@ int main() {
 #endif
 
 
-    int n_node;
-    unsigned long int n_elementi_classifica;
-    unsigned long int i = 0;
-    unsigned long int peggiore = MAX;
-    unsigned long int contatoregrafi = 0;
-//    bool piena = false;
+    u_int64_t n_node;
+    u_int64_t n_elementi_classifica;
+    u_int64_t i = 0;
+//    u_int64_t peggiore = MAX;
+    u_int64_t contatoregrafi = 0;
 
-    if (scanf("%d %lu\n", &n_node, &n_elementi_classifica) != 2) {
+    if (scanf("%lu %lu\n", &n_node, &n_elementi_classifica) != 2) {
         return -1;
     }
 
@@ -99,9 +106,9 @@ int main() {
 
 
     //Creo la matrice di adiacenza contenente i costi delle transizioni
-    unsigned long int **matr_costi = (unsigned long int **) malloc(n_node * sizeof(unsigned long int *));
+    u_int64_t **matr_costi = (u_int64_t **) malloc(n_node * sizeof(u_int64_t *));
     while (i < n_node) {
-        matr_costi[i] = (unsigned long int *) malloc(n_node * sizeof(unsigned long int));
+        matr_costi[i] = (u_int64_t *) malloc(n_node * sizeof(u_int64_t));
         i++;
     }
 
@@ -129,35 +136,13 @@ int main() {
                         .punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                       priority_queue)
                 };
-//
-//                //----------------DA VALUTARE QUANDO CLASSIFICA NON PIENA!!!!!!----------------//
-//                classifica[n_elementi_classifica].nome = contatoregrafi;
-//                classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-//                                                                               priority_queue);
 
-//                if (peggiore == 0) {
-//                    peggiore = classifica[n_elementi_classifica].punteggio;
-////                    Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
-//
-//                }
-                //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
-                //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
-
-                assert(new_p.punteggio != peggiore);
-
-                if (new_p.punteggio <= peggiore){
+//                if (new_p.punteggio <= peggiore){
                     Inserimento_Ordinato(classifica, n_elementi_classifica, new_p);
-                }
-
-//                if (peggiore > classifica[n_elementi_classifica - 1].punteggio) {
-//                    Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
-//                    peggiore = classifica[n_elementi_classifica - 1].punteggio;
 //                }
+
 
                 contatoregrafi++;
-//                if (contatoregrafi == n_elementi_classifica) {
-//                    piena = true;
-//                }
                 break;
 
 
@@ -187,7 +172,6 @@ int main() {
 #endif
                 return 0;
 
-
             default:
                 printf("Error in 'identifica comando @ %lu (%d)'\n", contatoregrafi, cmd);
                 return -1;
@@ -196,12 +180,14 @@ int main() {
 }
 
 
-void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_da_stampare) {
+void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare) {
 
-    unsigned long int i;
+    u_int64_t i;
 
     //---------STAMPA DI DEBUG----------//
 
+
+#ifdef DEBUG
            for (i = 0; i < n_elementi_da_stampare; i++) {
                printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
            }
@@ -209,6 +195,7 @@ void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_d
     int a = 1+1;
     a++;
    return;
+#endif
 
 
     //------STAMPA PER PROGETTO------//
@@ -220,8 +207,8 @@ void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_d
 }
 
 
-void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, unsigned long int startdacopiare,
-                     unsigned long int startdovecopiare, unsigned long int quanticopiarne) {
+void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_int64_t startdacopiare,
+                     u_int64_t startdovecopiare, u_int64_t quanticopiarne) {
     int i;
     for (i = 0; i < quanticopiarne; i++) {
         dovecopiare[startdovecopiare].punteggio = dacopiare[startdacopiare].punteggio;
@@ -230,64 +217,64 @@ void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, uns
         startdovecopiare++;
     }
 }
+//
+//
+//void MERGE(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t centro,
+//           u_int64_t final) {
+//    u_int64_t i = start;
+//    u_int64_t j = centro + 1;
+//    u_int64_t k = 0;
+//
+//
+//    while (i <= centro && j <= final) {
+//        if (classifica[i].punteggio <= classifica[j].punteggio) {
+//            temp[k].punteggio = classifica[i].punteggio;
+//            temp[k].nome = classifica[i].nome;
+//            i++;
+//        } else {
+//            temp[k].nome = classifica[j].nome;
+//            temp[k].punteggio = classifica[j].punteggio;
+//            j++;
+//        }
+//        k++;
+//    }
+//    if (i > centro) {
+//        while (j <= final) {
+//            temp[k].nome = classifica[j].nome;
+//            temp[k].punteggio = classifica[j].punteggio;
+//            j++;
+//            k++;
+//        }
+//    } else {
+//        while (i <= centro) {
+//            temp[k].punteggio = classifica[i].punteggio;
+//            temp[k].nome = classifica[i].nome;
+//            i++;
+//            k++;
+//        }
+//    }
+//    copy_classifica(temp, classifica, 0, start, k);
+//
+//}
+//
+//
+//void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t final) {
+//    // start: indice iniziale dell'array
+//    // final: indice finale dell'array
+//    // centro: indice intermedio dell'array
+//    // Divido l'array in 2 sottoarray; Se l'array ha un elemento, è già ordinato e non faccio nulla.
+//    if (start < final) {
+//        u_int64_t centro = (start + final) / 2;
+//        MERGESORT(classifica, temp, start, centro);
+//        MERGESORT(classifica, temp, centro + 1, final);
+//        MERGE(classifica, temp, start, centro, final);
+//    }
+//}
 
 
-void MERGE(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int centro,
-           unsigned long int final) {
-    unsigned long int i = start;
-    unsigned long int j = centro + 1;
-    unsigned long int k = 0;
+void Acquisisci_Matrice(u_int64_t **matrice, u_int64_t dimensione) {
 
-
-    while (i <= centro && j <= final) {
-        if (classifica[i].punteggio <= classifica[j].punteggio) {
-            temp[k].punteggio = classifica[i].punteggio;
-            temp[k].nome = classifica[i].nome;
-            i++;
-        } else {
-            temp[k].nome = classifica[j].nome;
-            temp[k].punteggio = classifica[j].punteggio;
-            j++;
-        }
-        k++;
-    }
-    if (i > centro) {
-        while (j <= final) {
-            temp[k].nome = classifica[j].nome;
-            temp[k].punteggio = classifica[j].punteggio;
-            j++;
-            k++;
-        }
-    } else {
-        while (i <= centro) {
-            temp[k].punteggio = classifica[i].punteggio;
-            temp[k].nome = classifica[i].nome;
-            i++;
-            k++;
-        }
-    }
-    copy_classifica(temp, classifica, 0, start, k);
-
-}
-
-
-void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, unsigned long int start, unsigned long int final) {
-    // start: indice iniziale dell'array
-    // final: indice finale dell'array
-    // centro: indice intermedio dell'array
-    // Divido l'array in 2 sottoarray; Se l'array ha un elemento, è già ordinato e non faccio nulla.
-    if (start < final) {
-        unsigned long int centro = (start + final) / 2;
-        MERGESORT(classifica, temp, start, centro);
-        MERGESORT(classifica, temp, centro + 1, final);
-        MERGE(classifica, temp, start, centro, final);
-    }
-}
-
-
-void Acquisisci_Matrice(unsigned long int **matrice, int dimensione) {
-
-    int i;
+    u_int64_t i;
     for (i = 0; i < dimensione; i++) {
         stdin_loadrow();
         stdin_parserow(dimensione, matrice[i]);
@@ -295,14 +282,13 @@ void Acquisisci_Matrice(unsigned long int **matrice, int dimensione) {
 }
 
 
-unsigned long int
-CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo *grafo,
+u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
                  nodo **priority_queue) {
 
-    unsigned long int i, j, k;
-    unsigned long int trovati = 1;
-    unsigned long int tot = 0;
-    unsigned long int nuovo_peso;
+    u_int64_t i, j, k;
+    u_int64_t trovati = 1;
+    u_int64_t tot = 0;
+    u_int64_t nuovo_peso;
 
     /*
      *
@@ -327,9 +313,9 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
         i = Find_Next(priority_queue, trovati - 1);
 
         for (j = 1; j < dimensione; j++) {
-//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato &&
-            if (matrice[i][j] != 0
-                    ) {
+            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato){
+//            if (matrice[i][j] != 0
+//                    ) {
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (nuovo_peso < grafo[j].peso) {
@@ -352,9 +338,9 @@ CalcoloPunteggio(unsigned long int **matrice, unsigned long int dimensione, nodo
     return tot;
 }
 
-void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
+void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione) {
 
-    unsigned long int index;
+    u_int64_t index;
 
     grafo[0].nome = 0;
     grafo[0].peso = 0;
@@ -373,12 +359,12 @@ void Inizializza_Grafo(nodo *grafo, unsigned long int dimensione) {
 }
 
 
-unsigned long int Find_Next(nodo **priority, unsigned long int size) {
+u_int64_t Find_Next(nodo **priority, u_int64_t size) {
 
-    unsigned long int n;
-    unsigned long int next = priority[size]->nome;
-    unsigned long int migliore = MAX;
-    unsigned long int peso_da_cercare;
+    u_int64_t n;
+    u_int64_t next = priority[size]->nome;
+    u_int64_t migliore = MAX;
+    u_int64_t peso_da_cercare;
 
     for (n = 1; n <= size; n++) {
         if (!priority[n]->esaminato) {
@@ -394,10 +380,10 @@ unsigned long int Find_Next(nodo **priority, unsigned long int size) {
 }
 
 
-static inline void stdin_parserow(int size, unsigned long int *ptr) {
+static inline void stdin_parserow(u_int64_t size, u_int64_t *ptr) {
     char *tmp_ptr = stdin_buffer;
-    for (int i = 0; i < size; i++) {
-        unsigned long int toReturn = 0;
+    for (u_int64_t i = 0; i < size; i++) {
+        u_int64_t toReturn = 0;
         while (*tmp_ptr != ',' && *tmp_ptr != '\n') {
             toReturn *= 10;
             toReturn += (*tmp_ptr) - 48;
@@ -425,21 +411,32 @@ static inline int stdin_getfch() {
 }
 
 
-static inline void stdin_init(int length) {
+static inline void stdin_init(u_int64_t length) {
     stdin_buffer_size = length * 10 + length + 10;
     stdin_buffer = malloc(stdin_buffer_size);
 }
 
 
-void Inserimento_Ordinato(nome_punteggio *classifica, unsigned long int numelem, nome_punteggio nuovo_elem) {
-    int index = 0;
-    while (classifica[index].punteggio < nuovo_elem.punteggio) {// && index < numelem
-        index++;
+void Inserimento_Ordinato_2(lnodo_t* list, lnodo_t* data){
+    while (list->peso < data->peso){
+        if (list == NULL){
+            return;
+        }
+        list = list->next;
+    }
+}
+
+void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem) {
+
+
+    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio){
+        // skip
+        return;
     }
 
-    if (index >= numelem){
-        printf("OUCH %lu", nuovo_elem.punteggio);
-    }
+    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
+
+    assert(index <= numelem);
 
     if (index < numelem){
         memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
@@ -452,7 +449,29 @@ void Inserimento_Ordinato(nome_punteggio *classifica, unsigned long int numelem,
 }
 
 
-void Inizializza_Classifica(nome_punteggio *classifica, unsigned long int elem_class) {
+u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem){
+
+
+    u_int64_t mezzo = partenza + (num_elem - partenza)/2;
+
+    if (da_trovare.punteggio < classifica[partenza].punteggio){
+        return partenza;
+    }
+
+    if (classifica[mezzo].punteggio == da_trovare.punteggio){
+        return mezzo + 1;
+    }
+
+    if (da_trovare.punteggio > classifica[mezzo].punteggio){
+        return Ricerca_Binaria(classifica, da_trovare, mezzo + 1, num_elem);
+    }
+
+    return Ricerca_Binaria(classifica, da_trovare, partenza, mezzo - 1);
+
+}
+
+
+void Inizializza_Classifica(nome_punteggio *classifica, u_int64_t elem_class) {
 
     int index = 0;
 //    nome_punteggio tmp;
@@ -469,237 +488,4 @@ void Inizializza_Classifica(nome_punteggio *classifica, unsigned long int elem_c
 //    print_classifica(classifica, elem_class);
 
 }
-
-
-//------------------------------------------------------REMINISCENZE--------------------------------------------------//
-
-/*
-bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev);
-
-unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final);
-
-void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final);
-
-void Bubble_Sort_Priority(nodo **priority, unsigned long start, unsigned long size);
-
- int Identifica_Comando(char *command);
-
-void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size);
-
-unsigned long int Funzione_Buffa (nodo **priority, unsigned long int i, unsigned long int j);
-*/
-
-/*
- * void Bubble_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int size) {
-    unsigned long int i, j;
-
-
-    for (i = start; i < size - 1; i++) {
-        for (j = start; j < size - 1; j++) {
-            if (priority[j]->peso > priority[j + 1]->peso) {
-                nodo *tmp = priority[j + 1];
-                priority[j + 1] = priority[j];
-                priority[j] = tmp;
-            }
-        }
-    }
-
-}
-
-
-void Insertion_Sort(nodo **priority, unsigned long int start, unsigned long int size) {
-    unsigned long int i, j, k;
-
-    for (i = start; i < size; i++) {
-        k = priority[i]->peso;
-        j = i - 1;
-
-        while (j >= start && priority[j]->peso > k) {
-            nodo *tmp = priority[j + 1];
-            priority[j + 1] = priority[j];
-            priority[j] = tmp;
-            j = j - 1;
-        }
-        priority[j + 1]->peso = k;
-    }
-}
-
-int Identifica_Comando(char *command) {
-
-    if (strcmp(command, "TopK") == 0) {
-        //printf("TopK\n");
-        return 2;
-    }
-    if (strcmp(command, "AggiungiGrafo") == 0) {
-        //printf("AggiungiGrafo\n");
-        return 1;
-    }
-    if (strcmp(command, "END") == 0) {
-        //printf("END\n");
-        return 3;
-    }
-    printf("Identificato Niente\n");
-    return -1;
-}
-
-void Quick_Sort_Priority(nodo **priority, unsigned long int start, unsigned long int final) {
-
-    unsigned long int partitioned;
-    if (start < final) {
-        partitioned = Partition(priority, start, final);
-        Quick_Sort_Priority(priority, start, partitioned - 1);
-        Quick_Sort_Priority(priority, partitioned + 1, final);
-    }
-}
-
-
-unsigned long int Partition(nodo **priority, unsigned long int start, unsigned long int final) {
-
-    unsigned long int el = priority[final]->peso;
-    unsigned long int i = start - 1;
-    unsigned long int j;
-    for (j = start; j <= final - 1; j++) {
-        if (priority[j]->peso <= el) {
-            i++;
-            nodo *tmp = priority[i];
-            priority[i] = priority[j];
-            priority[j] = tmp;
-        }
-    }
-    nodo *tmp = priority[i + 1];
-    priority[i + 1] = priority[final];
-    priority[final] = tmp;
-
-    return (i + 1);
-
-}
-
-bool Antenato(nodo *grafo, unsigned long int ind_analizzare, unsigned long int ind_prev) {
-
-    bool ritorno = true;
-
-    if (ind_analizzare == 0) {
-        return true;
-    }
-    if (grafo[ind_analizzare].nodo_precedente != ind_prev) {
-        ritorno = Antenato(grafo, grafo[ind_analizzare].nodo_precedente, ind_prev);
-    }
-    if (grafo[ind_analizzare].nodo_precedente == ind_prev) {
-        return false;
-    }
-    return ritorno;
-}
-
-
-char *split_base;
-char *split_init;
-char *split_str;
-
-const int SPLIT_SIZE = 512*1024;
-const char *SPLIT_DELIMITER = " ,\n";
-char *SPLIT_INIT_STRING = "\0";
-
-void initAcquisisciStringa() {
-    split_base = malloc(SPLIT_SIZE + 1);
-    *split_base = '\0';
-    split_init = split_base - 1;
-    split_str = split_base - 1;
-}
-
-static inline char *_Acquisisci_Stringa() {
-    split_init = split_str + 1;
-    split_str = split_init;
-    while (*split_str != ',' && *split_str != ' ' && *split_str != '\n') {
-//        printf("->WHILE: [%s] [%s] [%s]\n", split_base, split_init, split_str);
-        if (*split_str == '\0') {
-            int nchar = split_str - split_init;
-            memmove(split_base, split_init, nchar);
-            split_init = split_base;
-            split_str = split_base + nchar;
-            //printf("REALLOC1 %d\n", (SPLIT_SIZE - nchar));
-            int nread = fread(split_str, 1, SPLIT_SIZE - nchar, stdin);
-            //printf("REALLOC2 %d\n", nread);
-            if (nread == 0 && feof(stdin)) {
-                return "END";
-            }
-            *(split_str + 1 + nread) = '\0';
-        } else {
-            split_str++;
-        }
-    }
-
-    *split_str = '\0';
-//    printf("RETURN %s\n", split_init);
-    return split_init;
-//        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
-//    {
-//        input = getc_unlocked(stdin);
-//        if (input == ',' || input == ' ' || input == '\n') {
-//            break;
-//        }
-//        if (input == EOF) {
-//            return "END";
-//        }
-//        stringa[count++] = input;
-//
-//    }
-//    stringa[count] = '\0';
-//    return stringa;
-//
-//
-//
-//
-//    char* toReturn = strtok(stringa, SPLIT_DELIMITER);
-//
-//    if (toReturn != NULL){
-//        return toReturn;
-//    }
-//    else {
-//        int r = fread(new_str, 1, SPLIT_SIZE, stdin);
-//        new_str[r + 1] = '\0';
-//
-//        if (r == 0){
-//            if (feof(stdin)){
-//                return "END";
-//            }
-//        }
-//
-//        char* tmp = new_str;
-//        new_str = current_str;
-//        current_str = tmp;
-//        tmp_str = current_str;
-//        return _Acquisisci_Stringa(tmp_str);
-//
-//    }
-
-
-//
-//    char input;
-//    int count = 0;
-//
-//    while (1)
-//        // Ottengo i caratteri uno ad uno fino al '\n' e li inserisco nell'array
-//    {
-//        input = getc_unlocked(stdin);
-//        if (input == ',' || input == ' ' || input == '\n') {
-//            break;
-//        }
-//        if (input == EOF) {
-//            return "END";
-//        }
-//        stringa[count++] = input;
-//
-//    }
-//    stringa[count] = '\0';
-//    return stringa;
-
-
-}
-
-static inline char *Acquisisci_Stringa() {
-    return _Acquisisci_Stringa();
-};
-
-*/
-
 
