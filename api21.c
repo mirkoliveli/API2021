@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
-//#define DEBUG "input_2"
+//#define DEBUG "input_1"
 //#define DEBUG "generato.txt"
 //#define DEBUG "50x50.txt"
 #define DEBUG "8x20000.txt"
@@ -76,9 +76,9 @@ int main() {
     int n_node;
     unsigned long int n_elementi_classifica;
     unsigned long int i = 0;
-    unsigned long int peggiore = 0;
+    unsigned long int peggiore = MAX;
     unsigned long int contatoregrafi = 0;
-    bool piena = false;
+//    bool piena = false;
 
     if (scanf("%d %lu\n", &n_node, &n_elementi_classifica) != 2) {
         return -1;
@@ -124,11 +124,16 @@ int main() {
                 Inizializza_Grafo(grafo, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
-
-                //----------------DA VALUTARE QUANDO CLASSIFICA NON PIENA!!!!!!----------------//
-                classifica[n_elementi_classifica].nome = contatoregrafi;
-                classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                                               priority_queue);
+                nome_punteggio new_p = {
+                        .nome = contatoregrafi,
+                        .punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
+                                                      priority_queue)
+                };
+//
+//                //----------------DA VALUTARE QUANDO CLASSIFICA NON PIENA!!!!!!----------------//
+//                classifica[n_elementi_classifica].nome = contatoregrafi;
+//                classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
+//                                                                               priority_queue);
 
 //                if (peggiore == 0) {
 //                    peggiore = classifica[n_elementi_classifica].punteggio;
@@ -137,15 +142,22 @@ int main() {
 //                }
                 //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
                 //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
-                if (peggiore > classifica[n_elementi_classifica].punteggio || !piena) {
-                    Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
-                    peggiore = classifica[n_elementi_classifica - 1].punteggio;
+
+                assert(new_p.punteggio != peggiore);
+
+                if (new_p.punteggio <= peggiore){
+                    Inserimento_Ordinato(classifica, n_elementi_classifica, new_p);
                 }
 
+//                if (peggiore > classifica[n_elementi_classifica - 1].punteggio) {
+//                    Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
+//                    peggiore = classifica[n_elementi_classifica - 1].punteggio;
+//                }
+
                 contatoregrafi++;
-                if (contatoregrafi == n_elementi_classifica) {
-                    piena = true;
-                }
+//                if (contatoregrafi == n_elementi_classifica) {
+//                    piena = true;
+//                }
                 break;
 
 
@@ -189,12 +201,14 @@ void print_classifica(nome_punteggio *classifica, unsigned long int n_elementi_d
     unsigned long int i;
 
     //---------STAMPA DI DEBUG----------//
-    /*
+
            for (i = 0; i < n_elementi_da_stampare; i++) {
                printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
            }
-
-   */
+    printf("-\n");
+    int a = 1+1;
+    a++;
+   return;
 
 
     //------STAMPA PER PROGETTO------//
@@ -418,20 +432,23 @@ static inline void stdin_init(int length) {
 
 
 void Inserimento_Ordinato(nome_punteggio *classifica, unsigned long int numelem, nome_punteggio nuovo_elem) {
-
     int index = 0;
-
-    while (classifica[index].punteggio < nuovo_elem.punteggio) {
+    while (classifica[index].punteggio < nuovo_elem.punteggio) {// && index < numelem
         index++;
     }
 
-    if (index != numelem){
-        int gigi = numelem - index - 1;
-        assert(gigi > 0);
-        memmove(&(classifica[index + 1]), &(classifica[index]), (gigi) * sizeof(nome_punteggio));
+    if (index >= numelem){
+        printf("OUCH %lu", nuovo_elem.punteggio);
     }
+
+    if (index < numelem){
+        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
+    }
+
     classifica[index].nome = nuovo_elem.nome;
     classifica[index].punteggio = nuovo_elem.punteggio;
+
+//    print_classifica(classifica, numelem + 1);
 }
 
 
@@ -448,6 +465,9 @@ void Inizializza_Classifica(nome_punteggio *classifica, unsigned long int elem_c
         classifica[index].punteggio = MAX;
         index++;
     }
+
+//    print_classifica(classifica, elem_class);
+
 }
 
 
