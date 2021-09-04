@@ -76,11 +76,12 @@ static inline int stdin_getfch();
 
 static inline void stdin_init(int length_graph, int lenght_charts);
 
-u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem);
+u_int64_t
+Ricerca_Binaria(nome_punteggio *classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem);
 
 void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
 
-unsigned char convert(u_int64_t data, char* buff);
+unsigned char convert(u_int64_t data, char *buff);
 
 
 
@@ -120,7 +121,7 @@ int main() {
     //Creo la matrice di adiacenza contenente i costi delle transizioni
     u_int64_t **matr_costi = (u_int64_t **) malloc(n_node * sizeof(u_int64_t *));
     while (i < n_node) {
-        matr_costi[i] = (u_int64_t *) malloc(n_node * sizeof(u_int64_t ));
+        matr_costi[i] = (u_int64_t *) malloc(n_node * sizeof(u_int64_t));
         i++;
     }
 
@@ -133,18 +134,18 @@ int main() {
 
 
     while (1) {
+
         stdin_loadrow();
         int cmd = stdin_getfch();
-//        printf("Command %c\n", cmd);
+
         switch (cmd) {
             case 'A':
 //                printf("Identificato AggiungiGrafo\n");
 
-
                 Inizializza_Grafo(grafo, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
-                if (contatoregrafi == n_elementi_classifica){
+                if (contatoregrafi == n_elementi_classifica) {
                     MERGESORT(classifica, temp, 0, n_elementi_classifica - 1);
                 }
 
@@ -153,10 +154,9 @@ int main() {
                 if (contatoregrafi < n_elementi_classifica) {
 
 
-
                     classifica[contatoregrafi].nome = contatoregrafi;
                     classifica[contatoregrafi].txt[0] = '\0';
-classifica[contatoregrafi].init = false;
+                    classifica[contatoregrafi].init = false;
                     classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                             priority_queue);
 
@@ -245,11 +245,11 @@ void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampa
 
 
     stdout_buffer[0] = '\0';
-    char* curr = stdout_buffer;
+    char *curr = stdout_buffer;
 
     for (i = 0; i < n_elementi_da_stampare; i++) {
 
-        if(classifica[i].init == false){
+        if (classifica[i].init == false) {
             classifica[i].init = true;
             classifica[i].txt_len = convert(classifica[i].nome, classifica[i].txt);
         }
@@ -266,26 +266,24 @@ void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampa
 }
 
 
-
-unsigned char convert(u_int64_t data, char* buff){
+unsigned char convert(u_int64_t data, char *buff) {
 
     int i = 2;
     buff[TXT - 1] = '\0';
 
-    if (data == 0){
+    if (data == 0) {
         buff[TXT - i] = '0';
         i++;
-    }
-    else {
-        while (data > 0){
-            char temp = data%10;
+    } else {
+        while (data > 0) {
+            char temp = data % 10;
             buff[TXT - i] = temp + 48;
             data /= 10;
             i++;
         }
     }
 
-    memmove( buff, &(buff[TXT - i + 1]), i - 1);
+    memmove(buff, &(buff[TXT - i + 1]), i - 1);
     return (i - 2);
 
 }
@@ -294,19 +292,19 @@ unsigned char convert(u_int64_t data, char* buff){
 void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_int64_t startdacopiare,
                      u_int64_t startdovecopiare, u_int64_t quanticopiarne) {
 
-    memcpy(&(dovecopiare[startdovecopiare]), &(dacopiare[startdacopiare]), quanticopiarne * sizeof (nome_punteggio));
+    memcpy(&(dovecopiare[startdovecopiare]), &(dacopiare[startdacopiare]), quanticopiarne * sizeof(nome_punteggio));
 
 }
 
 
-void MERGE(nome_punteggio *classifica,nome_punteggio *temp, u_int64_t start, u_int64_t centro,
+void MERGE(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t centro,
            u_int64_t final) {
 
     u_int64_t i = start;
     u_int64_t j = centro + 1;
     u_int64_t k = 0;
 
-    size_t stazza = sizeof (nome_punteggio);
+    size_t stazza = sizeof(nome_punteggio);
 
     while (i <= centro && j <= final) {
         if (classifica[i].punteggio <= classifica[j].punteggio) {
@@ -386,8 +384,8 @@ u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *graf
         i = Find_Next(priority_queue, trovati - 1);
 
         for (j = 1; j < dimensione; j++) {
-//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato &&){
-            if (matrice[i][j] != 0){
+//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato){
+            if (matrice[i][j] != 0) {
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (nuovo_peso < grafo[j].peso) {
@@ -497,7 +495,7 @@ static inline void stdin_init(int length_graph, int length_charts) {
 
 void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem) {
 
-    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio){
+    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio) {
         // skip
         return;
     }
@@ -506,7 +504,7 @@ void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_pu
 
     assert(index <= numelem);
 
-    if (index < numelem){
+    if (index < numelem) {
         memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
     }
 
@@ -518,20 +516,21 @@ void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_pu
 }
 
 
-u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem){
+u_int64_t
+Ricerca_Binaria(nome_punteggio *classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem) {
 
 
     u_int64_t mezzo = partenza + ((num_elem - partenza) >> 1);
 
-    if (da_trovare.punteggio < classifica[partenza].punteggio){
+    if (da_trovare.punteggio < classifica[partenza].punteggio) {
         return partenza;
     }
 
-    if (classifica[mezzo].punteggio == da_trovare.punteggio){
+    if (classifica[mezzo].punteggio == da_trovare.punteggio) {
         return (mezzo + 1);
     }
 
-    if (da_trovare.punteggio > classifica[mezzo].punteggio){
+    if (da_trovare.punteggio > classifica[mezzo].punteggio) {
         return Ricerca_Binaria(classifica, da_trovare, mezzo + 1, num_elem);
     }
 
