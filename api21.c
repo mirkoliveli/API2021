@@ -3,17 +3,29 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <stdint.h>
 
-#define DEBUG "input_1"
+//#define DEBUG "input_1"
 //#define DEBUG "generato.txt"
 //#define DEBUG "50x50.txt"
 //#define DEBUG "8x20000.txt"
-#define MAX UINT64_MAX
-#define INSERIMENTO_ORDINATO_CLEANUP 25000
+#define DEBUG "class_4x20000.txt"
+//#define STAMPA
+
+#define MAX 4294967295
+
 
 static char *stdin_buffer;
-static u_int64_t stdin_buffer_size;
+static int stdin_buffer_size;
+
+
+
+//-------------------------------------------   LIBRERIA    ----------------------------------------------------------//
+
+typedef struct {
+    u_int64_t nome;
+    u_int64_t punteggio;
+} nome_punteggio;
+
 typedef struct {
     u_int64_t nome;
     u_int64_t peso;
@@ -21,22 +33,6 @@ typedef struct {
     bool raggiunto;
     bool esaminato;
 } nodo;
-typedef struct nome_punteggio {
-    uint64_t nome;
-    uint64_t punteggio;
-    struct nome_punteggio* next;
-} nome_punteggio;
-
-static nome_punteggio * Inserimento_Ordinato_FreeList;
-static uint64_t Inserimento_Ordinato_Cleanup_Count;
-
-//-------------------------------------------   LIBRERIA    ----------------------------------------------------------//
-//
-//typedef struct {
-//    u_int64_t nome;
-//    u_int64_t punteggio;
-//} nome_punteggio;
-
 
 void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare);
 
@@ -48,7 +44,7 @@ void MERGE(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_
 
 void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t final);
 
-void Acquisisci_Matrice(u_int64_t **matrice, u_int64_t dimensione);
+void Acquisisci_Matrice(u_int64_t **matrice, int dimensione);
 
 u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
                  nodo **priority_queue);
@@ -58,113 +54,36 @@ void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione);
 
 u_int64_t Find_Next(nodo **priority, u_int64_t size);
 
-static inline void stdin_parserow(u_int64_t size, u_int64_t *ptr);
+static inline void stdin_parserow(int size, u_int64_t *ptr);
 
 static inline void stdin_loadrow();
 
 static inline int stdin_getfch();
 
-static inline void stdin_init(u_int64_t length);
-
-//void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
-
-void Inizializza_Classifica(nome_punteggio *classifica, u_int64_t elem_class);
+static inline void stdin_init(int length);
 
 u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem);
 
+void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
 
-nome_punteggio * Inserimento_Ordinato_2_Get(){
-    if (Inserimento_Ordinato_FreeList == NULL){
-        return malloc(sizeof (nome_punteggio));
-    }
-    else {
-        nome_punteggio * toReturn = Inserimento_Ordinato_FreeList;
-        Inserimento_Ordinato_FreeList = toReturn->next;
-        return toReturn;
-    }
-}
 
-nome_punteggio * Inserimento_Ordinato_2_Put(nome_punteggio* element){
-    element->next = Inserimento_Ordinato_FreeList;
-    Inserimento_Ordinato_FreeList = element;
-}
 
-void Inserimento_Ordinato_2_Free(nome_punteggio* element){
-    free(element);
-}
-
-void Inserimento_Ordinato_Cleanup(nome_punteggio *list, uint64_t max_size){
-    uint64_t i = 0;
-    while (list != NULL && i < max_size){
-        list = list->next;
-        i++;
-    }
-
-    if (list == NULL) {
-        return;
-    }
-
-    nome_punteggio * tmp = list->next;
-    list->next = NULL;
-
-    while (tmp != NULL){
-        list = tmp;
-        tmp = list->next;
-        Inserimento_Ordinato_2_Put(list);
-    }
-}
-
-void Inserimento_Ordinato_2(nome_punteggio* list, nome_punteggio* data, uint64_t max_size){
-    int i = 0;
-    while (list != NULL && i < max_size && list->punteggio < data->punteggio){
-        list = list->next;
-        i++;
-    }
-
-    data->next = list;
-    list->next = data;
-
-    Inserimento_Ordinato_Cleanup_Count++;
-    if (Inserimento_Ordinato_Cleanup_Count > INSERIMENTO_ORDINATO_CLEANUP) {
-        Inserimento_Ordinato_Cleanup(list, max_size);
-        Inserimento_Ordinato_Cleanup_Count = 0;
-    }
-}
-
-//
-//void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem) {
-//    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio){
-//        // skip
-//        return;
-//    }
-//
-//    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
-//
-//    assert(index <= numelem);
-//
-//    if (index < numelem){
-//        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
-//    }
-//
-//    classifica[index].nome = nuovo_elem.nome;
-//    classifica[index].punteggio = nuovo_elem.punteggio;
-//
-////    print_classifica(classifica, numelem + 1);
-//}
-//
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
 
 int main() {
+
 #ifdef DEBUG
     FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/"DEBUG, "r", stdin);
 #endif
-    u_int64_t n_node;
+
+
+    int n_node;
     u_int64_t n_elementi_classifica;
     u_int64_t i = 0;
-//    u_int64_t peggiore = MAX;
+    u_int64_t peggiore = MAX;
     u_int64_t contatoregrafi = 0;
 
-    if (scanf("%lu %lu\n", &n_node, &n_elementi_classifica) != 2) {
+    if (scanf("%d %lu\n", &n_node, &n_elementi_classifica) != 2) {
         return -1;
     }
 
@@ -173,27 +92,27 @@ int main() {
 
     //Creo la classifica con n_elementi_classifica+1 elementi
     //L'elemento in più lo usero per aggiungere gli elementi partendo dalla coda
-//    nome_punteggio *classifica = (nome_punteggio *) malloc(
-//            (n_elementi_classifica + 1) * sizeof(nome_punteggio));
-//
-//    Inizializza_Classifica(classifica, n_elementi_classifica + 1);
-nome_punteggio *classifica = NULL;
+    nome_punteggio *classifica = (nome_punteggio *) malloc(
+            (n_elementi_classifica + 1) * sizeof(nome_punteggio));
+
     //Alloco la classifica temporanea per riordinare quella presente
-//    nome_punteggio *temp = (nome_punteggio *) malloc((n_elementi_classifica + 1) * sizeof(nome_punteggio));
+    nome_punteggio *temp = (nome_punteggio *) malloc((n_elementi_classifica + 1) * sizeof(nome_punteggio));
 
 
     //Creo la matrice di adiacenza contenente i costi delle transizioni
     u_int64_t **matr_costi = (u_int64_t **) malloc(n_node * sizeof(u_int64_t *));
     while (i < n_node) {
-        matr_costi[i] = (u_int64_t *) malloc(n_node * sizeof(u_int64_t));
+        matr_costi[i] = (u_int64_t *) malloc(n_node * sizeof(u_int64_t ));
         i++;
     }
+
 
     //Alloco la memoria per il grafo. Grafo[] di nodi
     nodo *grafo = (nodo *) malloc(n_node * sizeof(nodo));
 
     //Alloco la priority queue
     nodo **priority_queue = (nodo **) malloc(n_node * sizeof(nodo *));
+
 
     while (1) {
         stdin_loadrow();
@@ -206,20 +125,47 @@ nome_punteggio *classifica = NULL;
                 Inizializza_Grafo(grafo, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
-                nome_punteggio* new_p = Inserimento_Ordinato_2_Get();
-                new_p->nome = contatoregrafi,
-                new_p->punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                    priority_queue);
+                if (contatoregrafi == n_elementi_classifica){
+                    MERGESORT(classifica, temp, 0, n_elementi_classifica - 1);
+//                    print_classifica(classifica, n_elementi_classifica);
+                }
 
-//                Inserimento_Ordinato_2_Get()
-//                if (new_p.punteggio <= peggiore){
-//                    Inserimento_Ordinato(classifica, n_elementi_classifica, new_p);
 
-//                }
-                Inserimento_Ordinato_2_Put(new_p);
+                //QUESTO IF VERIFICA CHE CI SIANO SUFFICIENTI GRAFI PER RIEMPIRE LA CLASSIFICA.
+                //SE IF SODDISFATTO, CLASSIFICA NON PIENA, VA QUINDI AGGIUNTO IL NUOVO ELEMENTO IN CLASSIFICA
+                if (contatoregrafi < n_elementi_classifica) {
+
+                    classifica[contatoregrafi].nome = contatoregrafi;
+                    classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
+                                                                            priority_queue);
+
+
+                    if (peggiore < classifica[contatoregrafi].punteggio) {
+                        peggiore = classifica[contatoregrafi].punteggio;
+                    }
+
+                }
+                    //ENTRO IN QUESTO ELSE SE LA CLASSIFICA È PIENA
+                else {
+
+                    classifica[n_elementi_classifica].nome = contatoregrafi;
+                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
+                                                                                   priority_queue);
+
+
+                    //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
+                    //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
+                    if (peggiore > classifica[n_elementi_classifica].punteggio) {
+                        Inserimento_Ordinato(classifica, n_elementi_classifica, classifica[n_elementi_classifica]);
+                        peggiore = classifica[n_elementi_classifica].punteggio;
+                    }
+                }
 
                 contatoregrafi++;
+//                print_classifica(classifica, n_elementi_classifica);
                 break;
+
+
             case 'T':
 //                printf("Identificato TopK\n");
                 if (contatoregrafi > 0) {
@@ -239,12 +185,13 @@ nome_punteggio *classifica = NULL;
                 free(matr_costi);
                 free(classifica);
                 free(grafo);
-//                free(temp);
+                free(temp);
 
 #ifdef DEBUG
                 fclose(input);
 #endif
                 return 0;
+
 
             default:
                 printf("Error in 'identifica comando @ %lu (%d)'\n", contatoregrafi, cmd);
@@ -253,35 +200,27 @@ nome_punteggio *classifica = NULL;
     }
 }
 
-void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare) {
-    printf("");
-    u_int64_t i = 0;
-    while(classifica != NULL && i < n_elementi_da_stampare){
-        i++;
-        classifica = classifica->next;
-        printf("%lu, %lu\n", classifica->nome, classifica->punteggio);
-    }
-    //---------STAMPA DI DEBUG----------//
 
-//
-//#ifdef DEBUG
-//
-////           for (i = 0; i < n_elementi_da_stampare; i++) {
-////               printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
-////           }
-////    printf("-\n");
-////    int a = 1+1;
-////    a++;
-//   return;
-//#endif
-//        printf("CLASSIFICA TODO");
-//
-//    //------STAMPA PER PROGETTO------//
-////
-////    for (i = 0; i < n_elementi_da_stampare - 1; i++) {
-////        printf("%lu ", classifica[i].nome);
-////    }
-////    printf("%lu\n", classifica[i].nome);
+void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare) {
+
+    u_int64_t i;
+
+    //---------STAMPA DI DEBUG----------//
+    #ifdef STAMPA
+           for (i = 0; i < n_elementi_da_stampare; i++) {
+               printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
+           }
+    printf("\n");
+
+    return;
+    #endif
+
+    //------STAMPA PER PROGETTO------//
+
+    for (i = 0; i < n_elementi_da_stampare - 1; i++) {
+        printf("%lu ", classifica[i].nome);
+    }
+    printf("%lu\n", classifica[i].nome);
 }
 
 
@@ -295,64 +234,65 @@ void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_i
         startdovecopiare++;
     }
 }
-//
-//
-//void MERGE(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t centro,
-//           u_int64_t final) {
-//    u_int64_t i = start;
-//    u_int64_t j = centro + 1;
-//    u_int64_t k = 0;
-//
-//
-//    while (i <= centro && j <= final) {
-//        if (classifica[i].punteggio <= classifica[j].punteggio) {
-//            temp[k].punteggio = classifica[i].punteggio;
-//            temp[k].nome = classifica[i].nome;
-//            i++;
-//        } else {
-//            temp[k].nome = classifica[j].nome;
-//            temp[k].punteggio = classifica[j].punteggio;
-//            j++;
-//        }
-//        k++;
-//    }
-//    if (i > centro) {
-//        while (j <= final) {
-//            temp[k].nome = classifica[j].nome;
-//            temp[k].punteggio = classifica[j].punteggio;
-//            j++;
-//            k++;
-//        }
-//    } else {
-//        while (i <= centro) {
-//            temp[k].punteggio = classifica[i].punteggio;
-//            temp[k].nome = classifica[i].nome;
-//            i++;
-//            k++;
-//        }
-//    }
-//    copy_classifica(temp, classifica, 0, start, k);
-//
-//}
-//
-//
-//void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t final) {
-//    // start: indice iniziale dell'array
-//    // final: indice finale dell'array
-//    // centro: indice intermedio dell'array
-//    // Divido l'array in 2 sottoarray; Se l'array ha un elemento, è già ordinato e non faccio nulla.
-//    if (start < final) {
-//        u_int64_t centro = (start + final) / 2;
-//        MERGESORT(classifica, temp, start, centro);
-//        MERGESORT(classifica, temp, centro + 1, final);
-//        MERGE(classifica, temp, start, centro, final);
-//    }
-//}
 
 
-void Acquisisci_Matrice(u_int64_t **matrice, u_int64_t dimensione) {
+void MERGE(nome_punteggio *classifica,nome_punteggio *temp, u_int64_t start, u_int64_t centro,
+           u_int64_t final) {
+    u_int64_t i = start;
+    u_int64_t j = centro + 1;
+    u_int64_t k = 0;
 
-    u_int64_t i;
+
+
+    while (i <= centro && j <= final) {
+        if (classifica[i].punteggio <= classifica[j].punteggio) {
+            temp[k].punteggio = classifica[i].punteggio;
+            temp[k].nome = classifica[i].nome;
+            i++;
+        } else {
+            temp[k].nome = classifica[j].nome;
+            temp[k].punteggio = classifica[j].punteggio;
+            j++;
+        }
+        k++;
+    }
+    if (i > centro) {
+        while (j <= final) {
+            temp[k].nome = classifica[j].nome;
+            temp[k].punteggio = classifica[j].punteggio;
+            j++;
+            k++;
+        }
+    } else {
+        while (i <= centro) {
+            temp[k].punteggio = classifica[i].punteggio;
+            temp[k].nome = classifica[i].nome;
+            i++;
+            k++;
+        }
+    }
+    copy_classifica(temp, classifica, 0, start, k);
+
+}
+
+
+void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_int64_t final) {
+    // start: indice iniziale dell'array
+    // final: indice finale dell'array
+    // centro: indice intermedio dell'array
+    // Divido l'array in 2 sottoarray; Se l'array ha un elemento, è già ordinato e non faccio nulla.
+    if (start < final) {
+        u_int64_t centro = (start + final) / 2;
+        MERGESORT(classifica, temp, start, centro);
+        MERGESORT(classifica, temp, centro + 1, final);
+        MERGE(classifica, temp, start, centro, final);
+    }
+}
+
+
+void Acquisisci_Matrice(u_int64_t **matrice, int dimensione) {
+
+    int i;
     for (i = 0; i < dimensione; i++) {
         stdin_loadrow();
         stdin_parserow(dimensione, matrice[i]);
@@ -391,9 +331,9 @@ u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *graf
         i = Find_Next(priority_queue, trovati - 1);
 
         for (j = 1; j < dimensione; j++) {
-            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato){
-//            if (matrice[i][j] != 0
-//                    ) {
+//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato &&
+            if (matrice[i][j] != 0
+                    ) {
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (nuovo_peso < grafo[j].peso) {
@@ -458,9 +398,9 @@ u_int64_t Find_Next(nodo **priority, u_int64_t size) {
 }
 
 
-static inline void stdin_parserow(u_int64_t size, u_int64_t *ptr) {
+static inline void stdin_parserow(int size, u_int64_t *ptr) {
     char *tmp_ptr = stdin_buffer;
-    for (u_int64_t i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         u_int64_t toReturn = 0;
         while (*tmp_ptr != ',' && *tmp_ptr != '\n') {
             toReturn *= 10;
@@ -489,50 +429,50 @@ static inline int stdin_getfch() {
 }
 
 
-static inline void stdin_init(u_int64_t length) {
+static inline void stdin_init(int length) {
     stdin_buffer_size = length * 10 + length + 10;
     stdin_buffer = malloc(stdin_buffer_size);
 }
-//
-//u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem){
-//
-//
-//    u_int64_t mezzo = partenza + (num_elem - partenza)/2;
-//
-//    if (da_trovare.punteggio < classifica[partenza].punteggio){
-//        return partenza;
-//    }
-//
-//    if (classifica[mezzo].punteggio == da_trovare.punteggio){
-//        return mezzo + 1;
-//    }
-//
-//    if (da_trovare.punteggio > classifica[mezzo].punteggio){
-//        return Ricerca_Binaria(classifica, da_trovare, mezzo + 1, num_elem);
-//    }
-//
-//    return Ricerca_Binaria(classifica, da_trovare, partenza, mezzo - 1);
-//
-//}
 
 
-void Inizializza_Classifica(nome_punteggio *classifica, u_int64_t elem_class) {
-//
-//    int index = 0;
-////    nome_punteggio tmp;
-////    tmp.nome = MAX;
-////    tmp.punteggio = MAX;
-//
-//    while (index < elem_class) {
-////        memcpy(&(classifica[index]), &tmp, sizeof(nome_punteggio));
-//        classifica[index].nome = MAX;
-//        classifica[index].punteggio = MAX;
-//        index++;
-//    }
+void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem) {
 
-//    print_classifica(classifica, elem_class);
+    if (nuovo_elem.punteggio >= classifica[numelem - 1].punteggio){
+        // skip
+        return;
+    }
 
-classifica = NULL;
+    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
+
+    assert(index <= numelem);
+
+    if (index < numelem){
+        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(nome_punteggio));
+    }
+
+    classifica[index].nome = nuovo_elem.nome;
+    classifica[index].punteggio = nuovo_elem.punteggio;
 
 }
 
+
+u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem){
+
+
+    u_int64_t mezzo = partenza + (num_elem - partenza)/2;
+
+    if (da_trovare.punteggio < classifica[partenza].punteggio){
+        return partenza;
+    }
+
+    if (classifica[mezzo].punteggio == da_trovare.punteggio){
+        return (mezzo + 1);
+    }
+
+    if (da_trovare.punteggio > classifica[mezzo].punteggio){
+        return Ricerca_Binaria(classifica, da_trovare, mezzo + 1, num_elem);
+    }
+
+    return Ricerca_Binaria(classifica, da_trovare, partenza, mezzo - 1);
+
+}
