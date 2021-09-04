@@ -16,7 +16,8 @@
 //#define STAMPA
 
 #define MAX 4294967295
-#define MAX_SIZE 30
+//#define MAX_SIZE 30
+#define TXT 10
 
 
 static char *stdin_buffer;
@@ -25,7 +26,7 @@ static char *stdout_buffer;
 static int stdout_buffer_size;
 
 
-char BUFF[MAX_SIZE];
+//char BUFF[MAX_SIZE];
 
 
 
@@ -35,6 +36,8 @@ char BUFF[MAX_SIZE];
 typedef struct {
     u_int64_t nome;
     u_int64_t punteggio;
+    char txt[TXT];
+    char* str_init;
 } nome_punteggio;
 
 typedef struct {
@@ -77,7 +80,7 @@ u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare
 
 void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
 
-char* convert(u_int64_t data);
+char* convert(u_int64_t data, char* buff);
 
 
 
@@ -140,18 +143,30 @@ int main() {
                 Inizializza_Grafo(grafo, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
+//                if (contatoregrafi == 17){
+//                    printf("gigi\n");
+//                    print_classifica(classifica, n_elementi_classifica);
+//                }
+
                 if (contatoregrafi == n_elementi_classifica){
                     MERGESORT(classifica, temp, 0, n_elementi_classifica - 1);
                 }
 
+//                if (contatoregrafi == 17){
+//                    printf("gigi\n");
+//                }
 
                 //QUESTO IF VERIFICA CHE CI SIANO SUFFICIENTI GRAFI PER RIEMPIRE LA CLASSIFICA.
                 //SE IF SODDISFATTO, CLASSIFICA NON PIENA, VA QUINDI AGGIUNTO IL NUOVO ELEMENTO IN CLASSIFICA
                 if (contatoregrafi < n_elementi_classifica) {
 
+
+
                     classifica[contatoregrafi].nome = contatoregrafi;
                     classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                             priority_queue);
+                    classifica[contatoregrafi].txt[0] = '\0';
+                    classifica[contatoregrafi].str_init = NULL;
 
 
                     if (peggiore < classifica[contatoregrafi].punteggio) {
@@ -162,11 +177,13 @@ int main() {
                     //ENTRO IN QUESTO ELSE SE LA CLASSIFICA È PIENA
                 else {
 
+                    classifica[n_elementi_classifica].str_init = NULL;
+                    classifica[n_elementi_classifica].txt[0] = '\0';
                     classifica[n_elementi_classifica].nome = contatoregrafi;
                     classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
                                                                                    priority_queue);
 
-
+                    nome_punteggio gigi = classifica[n_elementi_classifica];
                     //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
                     //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
                     if (peggiore > classifica[n_elementi_classifica].punteggio) {
@@ -175,6 +192,7 @@ int main() {
                     }
                 }
 
+//                print_classifica(classifica, n_elementi_classifica);
                 contatoregrafi++;
                 break;
 
@@ -218,6 +236,7 @@ void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampa
 
     u_int64_t i;
 
+
     //---------STAMPA DI DEBUG----------//
 #ifdef STAMPA
     for (i = 0; i < n_elementi_da_stampare; i++) {
@@ -230,60 +249,110 @@ void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampa
 
     //------STAMPA PER PROGETTO------//
 
-    for (i = 0; i < n_elementi_da_stampare - 1; i++) {
-        fputs(convert(classifica[i].nome), stdout);
-        fputs(" ", stdout);
+    for (i = 0; i < n_elementi_da_stampare; i++) {
+        if(classifica[i].str_init == NULL){
+            classifica[i].str_init = convert(classifica[i].nome, classifica[i].txt);
+        }
+        fputs(classifica[i].str_init, stdout);
+        fputs(((i == n_elementi_da_stampare - 1)?"\n":" ") , stdout);
 //        printf("%lu ", classifica[i].nome);
     }
-    fputs(convert(classifica[i].nome)  , stdout);
-    fputs("\n", stdout);
+
 //    printf("%lu\n", classifica[i].nome);
+}
+
+
+char* convert(u_int64_t data, char* buff){
+    buff[TXT - 1] = '\0';
+
+    int i = 2;
+
+    if (data == 0){
+        buff[TXT - i] = '0';
+        i++;
+    }
+    else {
+        while (data > 0){
+            int temp = data%10;
+            buff[TXT - i] = temp + 48;
+            data /= 10;
+            i++;
+        }
+    }
+
+    return &(buff[TXT - i + 1]);
 }
 
 
 void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_int64_t startdacopiare,
                      u_int64_t startdovecopiare, u_int64_t quanticopiarne) {
-    int i;
-    for (i = 0; i < quanticopiarne; i++) {
-        dovecopiare[startdovecopiare].punteggio = dacopiare[startdacopiare].punteggio;
-        dovecopiare[startdovecopiare].nome = dacopiare[startdacopiare].nome;
-        startdacopiare++;
-        startdovecopiare++;
-    }
+
+
+    memcpy(&(dovecopiare[startdovecopiare]), &(dacopiare[startdacopiare]), quanticopiarne * sizeof (nome_punteggio));
+
+//    int i;
+//    for (i = 0; i < quanticopiarne; i++) {
+//        dovecopiare[startdovecopiare].punteggio = dacopiare[startdacopiare].punteggio;
+//        dovecopiare[startdovecopiare].nome = dacopiare[startdacopiare].nome;
+//        dovecopiare[startdovecopiare].str_init = dacopiare[startdovecopiare].str_init;
+//        strcpy(dovecopiare[startdovecopiare].txt, dacopiare[startdovecopiare].txt);
+//        startdacopiare++;
+//        startdovecopiare++;
+//    }
 }
 
 
 void MERGE(nome_punteggio *classifica,nome_punteggio *temp, u_int64_t start, u_int64_t centro,
            u_int64_t final) {
+
     u_int64_t i = start;
     u_int64_t j = centro + 1;
     u_int64_t k = 0;
 
-
+    size_t stazza = sizeof (nome_punteggio);
 
     while (i <= centro && j <= final) {
         if (classifica[i].punteggio <= classifica[j].punteggio) {
-            temp[k].punteggio = classifica[i].punteggio;
-            temp[k].nome = classifica[i].nome;
+
+            memcpy(&(temp[k]), &(classifica[i]), stazza);
+
+//            temp[k].punteggio = classifica[i].punteggio;
+//            temp[k].nome = classifica[i].nome;
+//            strcpy(temp[k].txt, classifica[i].txt);
+//            temp[k].str_init = classifica[i].str_init;
             i++;
         } else {
-            temp[k].nome = classifica[j].nome;
-            temp[k].punteggio = classifica[j].punteggio;
+
+            memcpy(&(temp[k]), &(classifica[j]), stazza);
+
+//            strcpy(temp[k].txt, classifica[j].txt);
+//            temp[k].nome = classifica[j].nome;
+//            temp[k].punteggio = classifica[j].punteggio;
+//            temp[k].str_init = classifica[j].str_init;
             j++;
         }
         k++;
     }
     if (i > centro) {
         while (j <= final) {
-            temp[k].nome = classifica[j].nome;
-            temp[k].punteggio = classifica[j].punteggio;
+
+            memcpy(&(temp[k]), &(classifica[j]), stazza);
+
+            //            strcpy(temp[k].txt, classifica[j].txt);
+//            temp[k].nome = classifica[j].nome;
+//            temp[k].punteggio = classifica[j].punteggio;
+//            temp[k].str_init = classifica[j].str_init;
             j++;
             k++;
         }
     } else {
         while (i <= centro) {
-            temp[k].punteggio = classifica[i].punteggio;
-            temp[k].nome = classifica[i].nome;
+
+            memcpy(&(temp[k]), &(classifica[i]), stazza);
+//            strcpy(temp[k].txt, classifica[i].txt);
+//            temp[k].punteggio = classifica[i].punteggio;
+//            temp[k].nome = classifica[i].nome;
+//            temp[k].str_init = classifica[i].str_init;
             i++;
             k++;
         }
@@ -412,27 +481,6 @@ static inline void stdin_parserow(int size, u_int64_t *ptr) {
         *ptr = toReturn;
         ptr++;
     }
-}
-
-
-char* convert(u_int64_t data){
-    BUFF[MAX_SIZE - 1] = '\0';
-
-    int i = 2;
-    if (data == 0){
-        BUFF[MAX_SIZE - i] = '0';
-        i++;
-    }
-    else {
-        while (data > 0){
-            int temp = data%10;
-            BUFF[MAX_SIZE - i] = temp + 48;
-            data /= 10;
-            i++;
-        }
-    }
-
-    return &(BUFF[MAX_SIZE - i + 1]);
 }
 
 
