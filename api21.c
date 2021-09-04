@@ -5,17 +5,28 @@
 #include <assert.h>
 
 //#define DEBUG "input_1"
-//#define DEBUG "generato.txt"
-//#define DEBUG "50x50.txt"
-//#define DEBUG "8x20000.txt"
-#define DEBUG "class_4x20000.txt"
+//#define DEBUG "input_2"
+//#define DEBUG "input_3"
+//#define DEBUG "input_4"
+//#define DEBUG "input_5"
+//#define DEBUG "input_6"
+#define DEBUG "class.txt"
+//#define DEBUG "medio.txt"
+//#define DEBUG "punteggi.txt"
 //#define STAMPA
 
 #define MAX 4294967295
+#define MAX_SIZE 30
 
 
 static char *stdin_buffer;
 static int stdin_buffer_size;
+static char *stdout_buffer;
+static int stdout_buffer_size;
+
+
+char BUFF[MAX_SIZE];
+
 
 
 
@@ -47,7 +58,7 @@ void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start
 void Acquisisci_Matrice(u_int64_t **matrice, int dimensione);
 
 u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
-                 nodo **priority_queue);
+                           nodo **priority_queue);
 
 void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione);
 
@@ -60,11 +71,13 @@ static inline void stdin_loadrow();
 
 static inline int stdin_getfch();
 
-static inline void stdin_init(int length);
+static inline void stdin_init(int length_graph, int lenght_charts);
 
 u_int64_t Ricerca_Binaria (nome_punteggio* classifica, nome_punteggio da_trovare, u_int64_t partenza, u_int64_t num_elem);
 
 void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_punteggio nuovo_elem);
+
+char* convert(u_int64_t data);
 
 
 
@@ -83,11 +96,13 @@ int main() {
     u_int64_t peggiore = MAX;
     u_int64_t contatoregrafi = 0;
 
+
+    //Prendo il numero di nodi e il numero di elementi della classifica
     if (scanf("%d %lu\n", &n_node, &n_elementi_classifica) != 2) {
         return -1;
     }
 
-    stdin_init(n_node);
+    stdin_init(n_node, n_elementi_classifica);
 //    printf("%lu %lu\n", n_node, n_elementi_classifica);
 
     //Creo la classifica con n_elementi_classifica+1 elementi
@@ -127,7 +142,6 @@ int main() {
 
                 if (contatoregrafi == n_elementi_classifica){
                     MERGESORT(classifica, temp, 0, n_elementi_classifica - 1);
-//                    print_classifica(classifica, n_elementi_classifica);
                 }
 
 
@@ -162,7 +176,6 @@ int main() {
                 }
 
                 contatoregrafi++;
-//                print_classifica(classifica, n_elementi_classifica);
                 break;
 
 
@@ -206,21 +219,25 @@ void print_classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampa
     u_int64_t i;
 
     //---------STAMPA DI DEBUG----------//
-    #ifdef STAMPA
-           for (i = 0; i < n_elementi_da_stampare; i++) {
+#ifdef STAMPA
+    for (i = 0; i < n_elementi_da_stampare; i++) {
                printf("%lu, %lu\n", classifica[i].nome, classifica[i].punteggio);
            }
     printf("\n");
 
     return;
-    #endif
+#endif
 
     //------STAMPA PER PROGETTO------//
 
     for (i = 0; i < n_elementi_da_stampare - 1; i++) {
-        printf("%lu ", classifica[i].nome);
+        fputs(convert(classifica[i].nome), stdout);
+        fputs(" ", stdout);
+//        printf("%lu ", classifica[i].nome);
     }
-    printf("%lu\n", classifica[i].nome);
+    fputs(convert(classifica[i].nome)  , stdout);
+    fputs("\n", stdout);
+//    printf("%lu\n", classifica[i].nome);
 }
 
 
@@ -301,39 +318,22 @@ void Acquisisci_Matrice(u_int64_t **matrice, int dimensione) {
 
 
 u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
-                 nodo **priority_queue) {
+                           nodo **priority_queue) {
 
     u_int64_t i, j, k;
     u_int64_t trovati = 1;
     u_int64_t tot = 0;
     u_int64_t nuovo_peso;
 
-    /*
-     *
-     * i = nodo di partenza
-     * j = nodo di arrivo
-     * k = numero di nodi analizzati
-     *
-     */
-
     priority_queue[0] = &(grafo[0]);
 
     for (k = 0; k < trovati; k++) {
 
-
-        /*
-         *
-         * SE INSERTION SORT
-         *
-         * i = priority_queue[k]->nome
-         */
-
         i = Find_Next(priority_queue, trovati - 1);
 
         for (j = 1; j < dimensione; j++) {
-//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato &&
-            if (matrice[i][j] != 0
-                    ) {
+//            if (i != j && matrice[i][j] != 0 && !grafo[j].esaminato &&){
+            if (matrice[i][j] != 0){
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (nuovo_peso < grafo[j].peso) {
@@ -415,6 +415,27 @@ static inline void stdin_parserow(int size, u_int64_t *ptr) {
 }
 
 
+char* convert(u_int64_t data){
+    BUFF[MAX_SIZE - 1] = '\0';
+
+    int i = 2;
+    if (data == 0){
+        BUFF[MAX_SIZE - i] = '0';
+        i++;
+    }
+    else {
+        while (data > 0){
+            int temp = data%10;
+            BUFF[MAX_SIZE - i] = temp + 48;
+            data /= 10;
+            i++;
+        }
+    }
+
+    return &(BUFF[MAX_SIZE - i + 1]);
+}
+
+
 static inline void stdin_loadrow() {
     if (fgets(stdin_buffer, stdin_buffer_size, stdin) == NULL && feof(stdin)) {}
 }
@@ -429,9 +450,12 @@ static inline int stdin_getfch() {
 }
 
 
-static inline void stdin_init(int length) {
-    stdin_buffer_size = length * 10 + length + 10;
+static inline void stdin_init(int length_graph, int length_charts) {
+    stdin_buffer_size = length_graph * 10 + length_graph + 10;
+    stdout_buffer_size = (length_charts + 1) * 10 + length_charts + 10;
+
     stdin_buffer = malloc(stdin_buffer_size);
+    stdout_buffer = malloc(stdout_buffer_size);
 }
 
 
