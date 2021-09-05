@@ -18,9 +18,9 @@
 //#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
-//#define DEBUG "class.txt"
+#define DEBUG "class.txt"
 //#define DEBUG "medio.txt"
-#define DEBUG "punteggi.txt"
+//#define DEBUG "punteggi.txt"
 //#define DEBUG "class_final.txt"
 //#define STAMPA
 
@@ -46,13 +46,6 @@ typedef struct {
     unsigned char txt_len;
 } nome_punteggio;
 
-typedef struct {
-    u_int64_t nome;
-    u_int64_t peso;
-    bool raggiunto;
-    bool esaminato;
-} nodo;
-
 void Stampa_Classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare);
 
 void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_int64_t startdacopiare,
@@ -65,12 +58,6 @@ void MERGESORT(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start
 
 void Acquisisci_Matrice(u_int64_t **matrice, int dimensione);
 
-u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
-                           nodo **priority_queue);
-
-void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione);
-
-u_int64_t Find_Next(nodo **priority, u_int64_t size);
 
 static inline void stdin_parserow(int size, u_int64_t *ptr);
 
@@ -89,6 +76,13 @@ void Inserimento_Ordinato(nome_punteggio *classifica, u_int64_t numelem, nome_pu
 
 unsigned char convert(u_int64_t data, char *buff);
 
+//-----------------------------------NUOVE IN PROVA--------------------------------------------//
+
+void Inizializza_Grafo2(u_int64_t *peso, bool *esaminato, int dimensione);
+
+u_int64_t CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso, bool *esaminato, int dimensione);
+
+u_int64_t Find_Next2(u_int64_t *peso, bool *esaminato, int dimensione);
 
 
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
@@ -133,11 +127,9 @@ int main() {
     }
 
 
-    //Alloco la memoria per il grafo. Grafo[] di nodi
-    nodo *grafo = (nodo *) malloc(n_node * sizeof(nodo));
-
-    //Alloco la priority queue
-    nodo **priority_queue = (nodo **) malloc(n_node * sizeof(nodo *));
+    //NUOVO NODOYUPPI
+    u_int64_t *peso = (u_int64_t *) malloc(n_node * sizeof(u_int64_t));
+    bool *esaminato = (bool *) malloc(n_node * sizeof(bool));
 
 
     while (1) {
@@ -149,7 +141,7 @@ int main() {
             case 'A':
 //                printf("Identificato AggiungiGrafo\n");
 
-                Inizializza_Grafo(grafo, n_node);
+                Inizializza_Grafo2(peso, esaminato, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
                 if (contatoregrafi == n_elementi_classifica) {
@@ -164,8 +156,7 @@ int main() {
                     classifica[contatoregrafi].nome = contatoregrafi;
                     classifica[contatoregrafi].txt[0] = '\0';
                     classifica[contatoregrafi].init = false;
-                    classifica[contatoregrafi].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                                            priority_queue);
+                    classifica[contatoregrafi].punteggio = CalcoloPunteggio2(matr_costi, peso, esaminato, n_node);
 
 
                     if (peggiore < classifica[contatoregrafi].punteggio) {
@@ -183,13 +174,13 @@ int main() {
                     classifica[n_elementi_classifica].init = false;
                     classifica[n_elementi_classifica].txt[0] = '\0';
                     classifica[n_elementi_classifica].nome = contatoregrafi;
-                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio(matr_costi, n_node, grafo,
-                                                                                   priority_queue);
+                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio2(matr_costi, peso, esaminato,
+                                                                                    n_node);
+
 
                     //QUESTA CONDIZIONE VERIFICA CHE IL MIO NUOVO PUNTEGGIO SIA MIGLIORE DEL PUNTEGGIO PEGGIORE IN CLASSIFICA
                     //SE L'IF È SODDISFATTO, ALLORA IL NUOVO ELEMENTO DEVE ESSERE AGGIUNTO ALLA CLASSIFICA
                     if (classifica[n_elementi_classifica].punteggio < migliore) {
-                        //Inserimento in testa
                         Inserimento_In_Testa(classifica, classifica[n_elementi_classifica], n_elementi_classifica);
                         migliore = classifica[0].punteggio;
                     } else {
@@ -220,12 +211,12 @@ int main() {
             case EOF:
 //                printf("Identificato END\n");
 
-                free(priority_queue);
                 free(stdout_buffer);
                 free(stdin_buffer);
-                free(matr_costi);
                 free(classifica);
-                free(grafo);
+                free(matr_costi);
+                free(esaminato);
+                free(peso);
                 free(temp);
 
 #ifdef DEBUG
@@ -323,30 +314,30 @@ void MERGE(nome_punteggio *classifica, nome_punteggio *temp, u_int64_t start, u_
     size_t stazza = sizeof(nome_punteggio);
 
     while (i <= centro && j <= final) {
+        //SE i < j, inserisco i in temp
         if (classifica[i].punteggio <= classifica[j].punteggio) {
-
             memcpy(&(temp[k]), &(classifica[i]), stazza);
-
             i++;
+            //altrimenti inserisco j
         } else {
-
             memcpy(&(temp[k]), &(classifica[j]), stazza);
-
             j++;
         }
         k++;
     }
+    //se ho preso più elementi da left rispetto righ, finisco di inserire i right in temp
     if (i > centro) {
+
         while (j <= final) {
-
             memcpy(&(temp[k]), &(classifica[j]), stazza);
-
             j++;
             k++;
         }
-    } else {
+    }
+        //entro nell'else se ho preso più elemtni di right rispetto a left
+        //finisco l'inserimento degli elemtni di left in temp
+    else {
         while (i <= centro) {
-
             memcpy(&(temp[k]), &(classifica[i]), stazza);
             i++;
             k++;
@@ -381,87 +372,59 @@ void Acquisisci_Matrice(u_int64_t **matrice, int dimensione) {
 }
 
 
-/*
-    CALCOLO_PUNTEGGIO
-    // i = nodo di partenza
-    // j = nodo di arrivo
-    // k = numero nodi analizzati
- */
-u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *grafo,
-                           nodo **priority_queue) {
+u_int64_t CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso, bool *esaminato, int dimensione) {
 
-    u_int64_t i, j, k;
-    u_int64_t trovati = 1;
+    int i, j, k;
+    int trovati = 1;
     u_int64_t tot = 0;
     u_int64_t nuovo_peso;
-    priority_queue[0] = &(grafo[0]);
-
     for (k = 0; k < trovati; k++) {
-
-        i = Find_Next(priority_queue, trovati - 1);
-
+        i = Find_Next2(peso, esaminato, dimensione);
         for (j = 1; j < dimensione; j++) {
-//            if (i != j && matrice[i][j] != 0) {
+//            if(i != j && matrice[i][j] != 0){
             if (matrice[i][j] != 0) {
-                nuovo_peso = matrice[i][j] + grafo[i].peso;
-
-                if (!grafo[j].raggiunto) {
-                    grafo[j].raggiunto = true;
-                    grafo[j].peso = nuovo_peso;
-                    priority_queue[trovati] = &(grafo[j]);
+                nuovo_peso = matrice[i][j] + peso[i];
+                if (peso[j] == MAX) {
                     trovati++;
                 }
-
-                if (nuovo_peso < grafo[j].peso) {
-                    grafo[j].peso = nuovo_peso;
+                if (nuovo_peso < peso[j]) {
+                    peso[j] = nuovo_peso;
                 }
             }
         }
-        grafo[i].esaminato = true;
-        tot = tot + grafo[i].peso;
+        esaminato[i] = 1;
+        tot += peso[i];
     }
-
     return tot;
 }
 
-void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione) {
+void Inizializza_Grafo2(u_int64_t *peso, bool *esaminato, int dimensione) {
 
-    u_int64_t index;
+    peso[0] = 0;
+    esaminato[0] = 0;
 
-    grafo[0].nome = 0;
-    grafo[0].peso = 0;
-    grafo[0].raggiunto = true;
-    grafo[0].esaminato = false;
-
-    for (index = 1; index < dimensione; index++) {
-        grafo[index].nome = index;
-        grafo[index].raggiunto = false;
-        grafo[index].esaminato = false;
+    for (int i = 1; i < dimensione; ++i) {
+        peso[i] = MAX;
+        esaminato[i] = 0;
     }
 
 }
 
+u_int64_t Find_Next2(u_int64_t *peso, bool *esaminato, int dimensione) {
 
-u_int64_t Find_Next(nodo **priority, u_int64_t size) {
-
-    //La funzione ritorna l'indice del nodo non analizzato col minor peso
-
-    u_int64_t n;
-    u_int64_t next = priority[size]->nome;
     u_int64_t migliore = MAX;
-    u_int64_t peso_da_cercare;
+    int toReturn = 0;
+    int index;
 
-    for (n = 1; n <= size; n++) {
-        if (!priority[n]->esaminato) {
-            peso_da_cercare = priority[n]->peso;
-            if (peso_da_cercare < migliore) {
-                migliore = peso_da_cercare;
-                next = priority[n]->nome;
-            }
+    for (index = 1; index < dimensione; index++) {
+        if (peso[index] < migliore && !esaminato[index]) {
+            migliore = peso[index];
+            toReturn = index;
         }
     }
 
-    return next;
+    return toReturn;
+
 }
 
 
