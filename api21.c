@@ -401,8 +401,8 @@ u_int64_t CalcoloPunteggio(u_int64_t **matrice, u_int64_t dimensione, nodo *graf
         i = Find_Next(priority_queue, trovati - 1);
 
         for (j = 1; j < dimensione; j++) {
-            if (i != j && matrice[i][j] != 0) {
-//            if (matrice[i][j] != 0) {
+//            if (i != j && matrice[i][j] != 0) {
+            if (matrice[i][j] != 0) {
                 nuovo_peso = matrice[i][j] + grafo[i].peso;
 
                 if (!grafo[j].raggiunto) {
@@ -435,7 +435,6 @@ void Inizializza_Grafo(nodo *grafo, u_int64_t dimensione) {
 
     for (index = 1; index < dimensione; index++) {
         grafo[index].nome = index;
-//        grafo[index].peso = MAX;
         grafo[index].raggiunto = false;
         grafo[index].esaminato = false;
     }
