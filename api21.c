@@ -326,7 +326,7 @@ int main() {
 
 
             case 'T':
-//                printf("Identificato TopK\n");
+                printf("Identificato TopK\n");
                 if (contatoregrafi > 0) {
                     if (contatoregrafi < n_elementi_classifica) {
                         Stampa_Classifica(classifica, contatoregrafi);
