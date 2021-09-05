@@ -18,7 +18,7 @@
 //#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
-//#define DEBUG "class.txt"
+#define DEBUG "class.txt"
 //#define DEBUG "medio.txt"
 //#define DEBUG "punteggi.txt"
 //#define DEBUG "class_final.txt"
@@ -54,7 +54,7 @@ typedef struct {
 
 
 typedef struct {
-    heap_element* data;
+    heap_element *data;
     u_int64_t capacita;
     u_int64_t dimensione_attuale;
 } heap;
@@ -99,38 +99,38 @@ unsigned char convert(u_int64_t data, char *buff);
 //-----------------------------------NUOVE IN PROVA--------------------------------------------//
 
 void Inizializza_Grafo2(u_int64_t *peso, bool *esaminato, int dimensione);
-u_int64_t CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso, bool *esaminato, int dimensione);
-u_int64_t Find_Next2(u_int64_t *peso, bool *esaminato, int dimensione);
+
+u_int64_t
+CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso_array, heap *peso_heap, bool *esaminato, int dimensione);
+
+bool Find_Next2(heap *peso_heap, bool *esaminato, u_int64_t *result);
 
 
-
-void Crea_Heap(heap* mio_heap, u_int64_t dimensione){
-    mio_heap->data = malloc(dimensione * sizeof (heap_element));
+void Crea_Heap(heap *mio_heap, u_int64_t dimensione) {
+    mio_heap->data = malloc(dimensione * 3 * sizeof(heap_element));
     mio_heap->capacita = dimensione;
     mio_heap->dimensione_attuale = 0;
 }
 
 
-
-void _Copia_Elemento_Heap_(heap_element* from, heap_element* to){
+void _Copia_Elemento_Heap_(heap_element *from, heap_element *to) {
     memcpy(to, from, sizeof(heap_element));
 }
 
-void Copia_Elemento_Heap(heap* mio_heap, u_int64_t from, u_int64_t to){
+void Copia_Elemento_Heap(heap *mio_heap, u_int64_t from, u_int64_t to) {
     _Copia_Elemento_Heap_(&(mio_heap->data[from]), &(mio_heap->data[to]));
 }
 
 
-
-u_int64_t Heap_Left(u_int64_t index){
+u_int64_t Heap_Left(u_int64_t index) {
     return (2 * index + 1);
 }
 
-u_int64_t Heap_Right(u_int64_t index){
+u_int64_t Heap_Right(u_int64_t index) {
     return (2 * index + 2);
 }
 
-void Swap_Heap_Element(heap* mio_heap, u_int64_t indexA, u_int64_t indexB){
+void Swap_Heap_Element(heap *mio_heap, u_int64_t indexA, u_int64_t indexB) {
 
     heap_element temp;
 
@@ -140,21 +140,20 @@ void Swap_Heap_Element(heap* mio_heap, u_int64_t indexA, u_int64_t indexB){
 
 }
 
-void Min_Heapify (heap* mio_heap, u_int64_t index){
+void Min_Heapify(heap *mio_heap, u_int64_t index) {
 
-    u_int64_t left = Heap_Left( index);
-    u_int64_t right = Heap_Right( index);
+    u_int64_t left = Heap_Left(index);
+    u_int64_t right = Heap_Right(index);
     u_int64_t piccolo = index;
 
 
-    if (left < mio_heap->dimensione_attuale && mio_heap->data[left].peso < mio_heap->data[index].peso){
+    if (left < mio_heap->dimensione_attuale && mio_heap->data[left].peso < mio_heap->data[index].peso) {
         piccolo = left;
     }
     if (right < mio_heap->dimensione_attuale && mio_heap->data[right].peso < mio_heap->data[piccolo].peso) {
         piccolo = right;
     }
-    if (piccolo != index)
-    {
+    if (piccolo != index) {
 
         Swap_Heap_Element(mio_heap, index, piccolo);
         Min_Heapify(mio_heap, piccolo);
@@ -162,35 +161,50 @@ void Min_Heapify (heap* mio_heap, u_int64_t index){
 
 }
 
-void Estrai_Minimo_Heap(heap* mio_heap, heap_element* dove_salvare){
+bool Estrai_Minimo_Heap(heap *mio_heap, heap_element *dove_salvare) {
+
+    if (mio_heap->dimensione_attuale == 0) {
+        return false;
+    }
 
     _Copia_Elemento_Heap_(&(mio_heap->data[0]), dove_salvare);
     mio_heap->dimensione_attuale--;
 
-    if (mio_heap->dimensione_attuale > 1){
-        Copia_Elemento_Heap(mio_heap, mio_heap->dimensione_attuale, 0);
-    } else{
+    if (mio_heap->dimensione_attuale > 1) {
         Min_Heapify(mio_heap, 0);
+    } else {
+        Copia_Elemento_Heap(mio_heap, mio_heap->dimensione_attuale, 0);
+
     }
 
+    return true;
+
 }
 
-u_int64_t padre (u_int64_t index){
-    return ((index - 1)/2);
+u_int64_t padre(u_int64_t index) {
+    return ((index - 1) / 2);
 }
 
-void Insert_Element(heap* mio_heap, heap_element* da_inserire){
+void Insert_Element(heap *mio_heap, heap_element *da_inserire) {
 
     _Copia_Elemento_Heap_(da_inserire, &(mio_heap->data[mio_heap->dimensione_attuale]));
     mio_heap->dimensione_attuale++;
     u_int64_t i = mio_heap->dimensione_attuale - 1;
 
-    while(i != 0 && mio_heap->data[padre(i)].peso > mio_heap->data[i].peso){
+    while (i != 0 && mio_heap->data[padre(i)].peso > mio_heap->data[i].peso) {
 
         Swap_Heap_Element(mio_heap, i, padre(i));
         i = padre(i);
     }
 
+}
+
+void Add_To_Heap(heap *mio_heap, u_int64_t id, u_int64_t peso) {
+    heap_element temp = {
+            .peso = peso,
+            .id = id,
+    };
+    Insert_Element(mio_heap, &temp);
 }
 
 //u_int64_t Finde_In_Three(u_int64_t *peso, bool * esaminato, int dimensione);
@@ -239,7 +253,10 @@ int main() {
 
 
     //NUOVO NODOYUPPI
-    u_int64_t *peso = (u_int64_t *) malloc(n_node * sizeof(u_int64_t));
+    heap peso_heap;
+    Crea_Heap(&peso_heap, n_node);
+
+    u_int64_t *peso_array = (u_int64_t *) malloc(n_node * sizeof(u_int64_t));
     bool *esaminato = (bool *) malloc(n_node * sizeof(bool));
 
 
@@ -252,7 +269,7 @@ int main() {
             case 'A':
 //                printf("Identificato AggiungiGrafo\n");
 
-                Inizializza_Grafo2(peso, esaminato, n_node);
+                Inizializza_Grafo2(peso_array, esaminato, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
                 if (contatoregrafi == n_elementi_classifica) {
@@ -267,7 +284,8 @@ int main() {
                     classifica[contatoregrafi].nome = contatoregrafi;
                     classifica[contatoregrafi].txt[0] = '\0';
                     classifica[contatoregrafi].init = false;
-                    classifica[contatoregrafi].punteggio = CalcoloPunteggio2(matr_costi, peso, esaminato, n_node);
+                    classifica[contatoregrafi].punteggio = CalcoloPunteggio2(matr_costi, peso_array, &peso_heap,
+                                                                             esaminato, n_node);
 
 
                     if (peggiore < classifica[contatoregrafi].punteggio) {
@@ -285,7 +303,8 @@ int main() {
                     classifica[n_elementi_classifica].init = false;
                     classifica[n_elementi_classifica].txt[0] = '\0';
                     classifica[n_elementi_classifica].nome = contatoregrafi;
-                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio2(matr_costi, peso, esaminato,
+                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio2(matr_costi, peso_array, &peso_heap,
+                                                                                    esaminato,
                                                                                     n_node);
 
 
@@ -327,7 +346,8 @@ int main() {
                 free(classifica);
                 free(matr_costi);
                 free(esaminato);
-                free(peso);
+                free(peso_array);
+                free(peso_heap.data);
                 free(temp);
 
 #ifdef DEBUG
@@ -483,29 +503,29 @@ void Acquisisci_Matrice(u_int64_t **matrice, int dimensione) {
 }
 
 
-u_int64_t CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso, bool *esaminato, int dimensione) {
+u_int64_t
+CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso_array, heap *peso_heap, bool *esaminato, int dimensione) {
 
-    int i, j, k;
-    int trovati = 1;
+    u_int64_t i;
+    int j;
     u_int64_t tot = 0;
     u_int64_t nuovo_peso;
-    for (k = 0; k < trovati; k++) {
-        i = Find_Next2(peso, esaminato, dimensione);
+
+    Add_To_Heap(peso_heap, 0, 0);
+//    esaminato[0]  = true;
+    while (Find_Next2(peso_heap, esaminato, &i)) {
+
         for (j = 1; j < dimensione; j++) {
 //            if(i != j && matrice[i][j] != 0){
-            if (matrice[i][j] != 0) {
-                nuovo_peso = matrice[i][j] + peso[i];
+            nuovo_peso = matrice[i][j] + peso_array[i];
 
-                if (peso[j] == MAX) {
-                    trovati++;
-                }
-                if (nuovo_peso < peso[j]) {
-                    peso[j] = nuovo_peso;
-                }
+            if (matrice[i][j] != 0 && nuovo_peso < peso_array[j]) {
+                peso_array[j] = nuovo_peso;
+                Add_To_Heap(peso_heap, j, nuovo_peso);
             }
         }
         esaminato[i] = 1;
-        tot += peso[i];
+        tot += peso_array[i];
     }
     return tot;
 }
@@ -522,20 +542,32 @@ void Inizializza_Grafo2(u_int64_t *peso, bool *esaminato, int dimensione) {
 
 }
 
-u_int64_t Find_Next2(u_int64_t *peso, bool *esaminato, int dimensione) {
+bool Find_Next2(heap *peso_heap, bool *esaminato, u_int64_t *result) {
 
-    u_int64_t migliore = MAX;
-    int toReturn = 0;
-    int index;
 
-    for (index = 1; index < dimensione; index++) {
-        if (peso[index] < migliore && !esaminato[index]) {
-            migliore = peso[index];
-            toReturn = index;
+    heap_element temp;
+
+    do {
+        if (!Estrai_Minimo_Heap(peso_heap, &temp)) {
+            return false;
         }
-    }
+    } while (esaminato[temp.id]);
 
-    return toReturn;
+    *result = temp.id;
+    return true;
+
+
+//    u_int64_t migliore = MAX;
+//    int toReturn = 0;
+//    int index;
+//    for (index = 1; index < dimensione; index++) {
+//        if (peso[index] < migliore && !esaminato[index]) {
+//            migliore = peso[index];
+//            toReturn = index;
+//        }
+//    }
+//
+//    return toReturn;
 
 }
 
