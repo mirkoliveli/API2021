@@ -18,7 +18,7 @@
 //#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
-#define DEBUG "class.txt"
+//#define DEBUG "class.txt"
 //#define DEBUG "medio.txt"
 //#define DEBUG "punteggi.txt"
 //#define DEBUG "class_final.txt"
@@ -45,6 +45,26 @@ typedef struct {
     bool init;
     unsigned char txt_len;
 } nome_punteggio;
+
+
+typedef struct {
+    u_int64_t id;
+    u_int64_t peso;
+} heap_element;
+
+
+typedef struct {
+    heap_element* data;
+    u_int64_t capacita;
+    u_int64_t dimensione_attuale;
+} heap;
+
+
+//typedef struct {
+//    u_int64_t index;
+//    u_int64_t peso;
+//    struct albero *sinitro, *destro;
+//} albero;
 
 void Stampa_Classifica(nome_punteggio *classifica, u_int64_t n_elementi_da_stampare);
 
@@ -79,10 +99,101 @@ unsigned char convert(u_int64_t data, char *buff);
 //-----------------------------------NUOVE IN PROVA--------------------------------------------//
 
 void Inizializza_Grafo2(u_int64_t *peso, bool *esaminato, int dimensione);
-
 u_int64_t CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso, bool *esaminato, int dimensione);
-
 u_int64_t Find_Next2(u_int64_t *peso, bool *esaminato, int dimensione);
+
+
+
+void Crea_Heap(heap* mio_heap, u_int64_t dimensione){
+    mio_heap->data = malloc(dimensione * sizeof (heap_element));
+    mio_heap->capacita = dimensione;
+    mio_heap->dimensione_attuale = 0;
+}
+
+
+
+void _Copia_Elemento_Heap_(heap_element* from, heap_element* to){
+    memcpy(to, from, sizeof(heap_element));
+}
+
+void Copia_Elemento_Heap(heap* mio_heap, u_int64_t from, u_int64_t to){
+    _Copia_Elemento_Heap_(&(mio_heap->data[from]), &(mio_heap->data[to]));
+}
+
+
+
+u_int64_t Heap_Left(u_int64_t index){
+    return (2 * index + 1);
+}
+
+u_int64_t Heap_Right(u_int64_t index){
+    return (2 * index + 2);
+}
+
+void Swap_Heap_Element(heap* mio_heap, u_int64_t indexA, u_int64_t indexB){
+
+    heap_element temp;
+
+    _Copia_Elemento_Heap_(&(mio_heap->data[indexA]), &temp);
+    _Copia_Elemento_Heap_(&(mio_heap->data[indexB]), &(mio_heap->data[indexA]));
+    _Copia_Elemento_Heap_(&temp, &(mio_heap->data[indexB]));
+
+}
+
+void Min_Heapify (heap* mio_heap, u_int64_t index){
+
+    u_int64_t left = Heap_Left( index);
+    u_int64_t right = Heap_Right( index);
+    u_int64_t piccolo = index;
+
+
+    if (left < mio_heap->dimensione_attuale && mio_heap->data[left].peso < mio_heap->data[index].peso){
+        piccolo = left;
+    }
+    if (right < mio_heap->dimensione_attuale && mio_heap->data[right].peso < mio_heap->data[piccolo].peso) {
+        piccolo = right;
+    }
+    if (piccolo != index)
+    {
+
+        Swap_Heap_Element(mio_heap, index, piccolo);
+        Min_Heapify(mio_heap, piccolo);
+    }
+
+}
+
+void Estrai_Minimo_Heap(heap* mio_heap, heap_element* dove_salvare){
+
+    _Copia_Elemento_Heap_(&(mio_heap->data[0]), dove_salvare);
+    mio_heap->dimensione_attuale--;
+
+    if (mio_heap->dimensione_attuale > 1){
+        Copia_Elemento_Heap(mio_heap, mio_heap->dimensione_attuale, 0);
+    } else{
+        Min_Heapify(mio_heap, 0);
+    }
+
+}
+
+u_int64_t padre (u_int64_t index){
+    return ((index - 1)/2);
+}
+
+void Insert_Element(heap* mio_heap, heap_element* da_inserire){
+
+    _Copia_Elemento_Heap_(da_inserire, &(mio_heap->data[mio_heap->dimensione_attuale]));
+    mio_heap->dimensione_attuale++;
+    u_int64_t i = mio_heap->dimensione_attuale - 1;
+
+    while(i != 0 && mio_heap->data[padre(i)].peso > mio_heap->data[i].peso){
+
+        Swap_Heap_Element(mio_heap, i, padre(i));
+        i = padre(i);
+    }
+
+}
+
+//u_int64_t Finde_In_Three(u_int64_t *peso, bool * esaminato, int dimensione);
 
 
 //-----------------------------------------------------   MAIN    ----------------------------------------------------//
@@ -384,6 +495,7 @@ u_int64_t CalcoloPunteggio2(u_int64_t **matrice, u_int64_t *peso, bool *esaminat
 //            if(i != j && matrice[i][j] != 0){
             if (matrice[i][j] != 0) {
                 nuovo_peso = matrice[i][j] + peso[i];
+
                 if (peso[j] == MAX) {
                     trovati++;
                 }
@@ -523,3 +635,8 @@ Ricerca_Binaria(nome_punteggio *classifica, nome_punteggio da_trovare, u_int64_t
     return Ricerca_Binaria(classifica, da_trovare, partenza, mezzo - 1);
 
 }
+
+
+//u_int64_t Finde_In_Three(albero *, bool * esaminato, int dimensione){
+//    if()
+//}
