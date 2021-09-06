@@ -16,7 +16,7 @@
 //#define DEBUG "input_1"
 //#define DEBUG "input_2"
 //#define DEBUG "input_3"
-#define DEBUG "input_4"
+//#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
 //#define DEBUG "class.txt"
@@ -306,13 +306,7 @@ int main() {
                 }
                     //ENTRO IN QUESTO ELSE SE LA CLASSIFICA È PIENA
                 else {
-//
-//
-//                    .txt_len = convert(contatoregrafi, classifica[n_elementi_classifica].txt);
-//                    classifica[n_elementi_classifica].nome = contatoregrafi;
-//                    classifica[n_elementi_classifica].punteggio = CalcoloPunteggio2(matr_costi, peso_array, &peso_heap,
-//                                                                                    esaminato,
-//                                                                                    n_node);
+
                     inizializza_elemento_classifica(&(classifica[n_elementi_classifica]), contatoregrafi,
                                                     CalcoloPunteggio2(matr_costi, peso_array, &peso_heap,
                                                                       esaminato, n_node));
@@ -339,15 +333,15 @@ int main() {
 
             case 'T':
 //                printf("Identificato TopK\n");
-                if (contatoregrafi > 0) {
-                    if (contatoregrafi < n_elementi_classifica) {
-                        Stampa_Classifica(classifica, contatoregrafi);
-                    } else {
-                        Stampa_Classifica(classifica, n_elementi_classifica);
-                    }
-                } else {
-                    printf("\n");
-                }
+//                if (contatoregrafi > 0) {
+//                    if (contatoregrafi < n_elementi_classifica) {
+//                        Stampa_Classifica(classifica, contatoregrafi);
+//                    } else {
+//                        Stampa_Classifica(classifica, n_elementi_classifica);
+//                    }
+//                } else {
+//                    printf("\n");
+//                }
                 break;
 
             case EOF:
@@ -363,12 +357,7 @@ int main() {
                 free(peso_array);
                 free(peso_heap.data);
                 free(temp);
-//                if (tmp_count >= 5000000){
-//                    return -1;
-//                }
-//                if (tmp_count >= 1000000){
-//                    *((int*)0) = 5;
-//                }
+
 
 #ifdef DEBUG
                 fclose(input);
@@ -478,8 +467,15 @@ unsigned char convert(u_int64_t data, u_int64_t *buff_) {
 
 void copy_classifica(nome_punteggio *dacopiare, nome_punteggio *dovecopiare, u_int64_t startdacopiare,
                      u_int64_t startdovecopiare, u_int64_t quanticopiarne) {
+    dovecopiare+= startdovecopiare;
+    dacopiare += startdacopiare;
 
-    memcpy(&(dovecopiare[startdovecopiare]), &(dacopiare[startdacopiare]), quanticopiarne * sizeof(nome_punteggio));
+    for (int i = 0; i < quanticopiarne; i++){
+        copia_nome_punteggio(dacopiare, dovecopiare);
+        dacopiare++;
+        dovecopiare++;
+    }
+//    memcpy(&(dovecopiare[startdovecopiare]), &(dacopiare[startdacopiare]), quanticopiarne * sizeof(nome_punteggio));
 
 }
 
