@@ -13,10 +13,10 @@
 
 //---------------------------------------------  TEST ---------------------------------------------//
 
-#define DEBUG "input_1"
+//#define DEBUG "input_1"
 //#define DEBUG "input_2"
 //#define DEBUG "input_3"
-//#define DEBUG "input_4"
+#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
 //#define DEBUG "class.txt"
@@ -24,7 +24,7 @@
 //#define DEBUG "punteggi.txt"
 //#define DEBUG "fabio2.txt"
 //#define DEBUG "class_final.txt"
-#define STAMPA
+//#define STAMPA
 
 
 //-------------------------------------------  GLOBALI  -------------------------------------------//
@@ -150,10 +150,10 @@ static inline void Min_Heapify(heap *mio_heap, u_int64_t index) {
     u_int64_t piccolo = index;
 
 
-    if (left < mio_heap->dimensione_attuale && mio_heap->data[left].peso < mio_heap->data[index].peso) {
+    if (left < (mio_heap->dimensione_attuale + 1) && mio_heap->data[left].peso < mio_heap->data[index].peso) {
         piccolo = left;
     }
-    if (right < mio_heap->dimensione_attuale && mio_heap->data[right].peso < mio_heap->data[piccolo].peso) {
+    if (right < (mio_heap->dimensione_attuale + 1) && mio_heap->data[right].peso < mio_heap->data[piccolo].peso) {
         piccolo = right;
     }
     if (piccolo != index) {
@@ -173,12 +173,12 @@ static inline bool Estrai_Minimo_Heap(heap *mio_heap, heap_element *dove_salvare
     mio_heap->dimensione_attuale--;
 
     if (mio_heap->dimensione_attuale > 0) {
-        Min_Heapify(mio_heap, 0);
         Copia_Elemento_Heap(mio_heap, mio_heap->dimensione_attuale, 0);
+        Min_Heapify(mio_heap, 0);
     }
 
 
-    printf("Extract Heap %lu %lu\n", dove_salvare->id, dove_salvare->peso);
+//    printf("Extract Heap %lu %lu\n", dove_salvare->id, dove_salvare->peso);
     return true;
 }
 
@@ -204,7 +204,7 @@ static inline void Insert_Element(heap *mio_heap, heap_element *da_inserire) {
 }
 
 static inline void Add_To_Heap(heap *mio_heap, u_int64_t id, u_int64_t peso) {
-    printf("Add Heap %lu %lu\n", id, peso);
+//    printf("Add Heap %lu %lu\n", id, peso);
 
     heap_element temp = {
             .peso = peso,
@@ -277,15 +277,7 @@ int main() {
         switch (cmd) {
             case 'A':
 //                printf("Identificato AggiungiGrafo\n");
-//if (contatoregrafi == 3){
-//
-//}
-                if (contatoregrafi == 4){
-                    printf(".");
-                }
-                if (contatoregrafi == 5){
-                    printf(".");
-                }
+
                 Inizializza_Grafo2(peso_array, esaminato, n_node);
                 Acquisisci_Matrice(matr_costi, n_node);
 
@@ -339,6 +331,8 @@ int main() {
 
                 }
 //                Stampa_Classifica(classifica, n_elementi_classifica);
+
+
                 contatoregrafi++;
                 break;
 
@@ -609,7 +603,7 @@ bool Find_Next2(heap *peso_heap, bool *esaminato, u_int64_t *result) {
     } while (esaminato[temp.id]);
 
 
-    printf("Found %lu %lu\n", temp.id, temp.peso);
+//    printf("Found %lu %lu\n", temp.id, temp.peso);
     *result = temp.id;
     return true;
 
