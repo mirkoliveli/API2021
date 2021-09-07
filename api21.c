@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <assert.h>
 #include <stdint.h>
 
 
@@ -16,7 +15,7 @@
 //#define DEBUG "input_1"
 //#define DEBUG "input_2"
 //#define DEBUG "input_3"
-#define DEBUG "input_4"
+//#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
 //#define DEBUG "class.txt"
@@ -33,7 +32,7 @@
 #define MAX UINT64_MAX
 
 
-static u_int64_t tmp_count = 0;
+//static u_int64_t tmp_count = 0;
 static char *stdin_buffer;
 static int stdin_buffer_size;
 static char *stdout_buffer;
@@ -88,18 +87,24 @@ static inline int stdin_getfch();
 
 static inline void stdin_init(int length_graph, int lenght_charts);
 
+static inline void Replace_Element_End(heap *mio_heap, heap_element *da_inserire);
+
+static inline void Replace_Element_Start(heap *mio_heap, heap_element *da_inserire);
+
+static inline void Rebalance_Heap_MinHeap(heap *mio_heap);
+
 u_int64_t
 Ricerca_Binaria(heap_element *classifica, heap_element da_trovare, u_int64_t partenza, u_int64_t num_elem);
 
-void Inserimento_In_Testa(heap_element *classifica, heap_element nuovo_elem, u_int64_t num_elem);
-
-void Inserimento_Ordinato(heap_element *classifica, u_int64_t numelem, heap_element nuovo_elem);
+//void Inserimento_In_Testa(heap_element *classifica, heap_element nuovo_elem, u_int64_t num_elem);
+//
+//void Inserimento_Ordinato(heap_element *classifica, u_int64_t numelem, heap_element nuovo_elem);
 
 unsigned char convert(u_int64_t data, u_int64_t *buff);
 
 static inline void _Copia_Elemento_Heap_(heap_element *from, heap_element *to);
 
-void Crea_Heap(heap *mio_heap, u_int64_t dimensione);
+void Crea_Heap(heap *mio_heap, u_int64_t dimensione, bool big);
 
 static inline void Copia_Elemento_Heap(heap *mio_heap, u_int64_t from, u_int64_t to);
 
@@ -115,7 +120,7 @@ static inline bool Estrai_Minimo_Heap(heap *mio_heap, heap_element *dove_salvare
 
 static inline u_int64_t padre(u_int64_t index);
 
-static inline void Insert_Element(heap *mio_heap, heap_element *da_inserire);
+static inline void Insert_Element_MinHeap(heap *mio_heap, heap_element *da_inserire);
 
 static inline void Add_To_Heap(heap *mio_heap, u_int64_t id, u_int64_t peso);
 
@@ -126,10 +131,13 @@ void Inizializza_Grafo(u_int64_t *peso, bool *esaminato, int dimensione);
 u_int64_t
 CalcoloPunteggio(u_int64_t **matrice, u_int64_t *peso_array, heap *peso_heap, bool *esaminato, int dimensione);
 
-bool Find_Next(heap *peso_heap, bool *esaminato, u_int64_t *result);
+bool Find_Next(heap *peso_heap, const bool *esaminato, u_int64_t *result);
 
-static inline void Rebalance_Heap(heap *mio_heap);
+static inline void Rebalance_Heap_MaxHeap(heap *mio_heap);
 
+static inline void Insert_Element_MaxHeap(heap *mio_heap, heap_element *da_inserire);
+
+static inline void Max_Heapify(heap *mio_heap, u_int64_t index);
 
 //----------------------------------------------------- IN PROVA -----------------------------------------------------//
 
@@ -175,12 +183,12 @@ int main() {
 
     //NUOVO NODOYUPPI
     heap peso_heap;
-    Crea_Heap(&peso_heap, n_node);
+    Crea_Heap(&peso_heap, n_node, true);
 
     heap classifica;
-    Crea_Heap(&classifica, n_elementi_classifica);
+    Crea_Heap(&classifica, n_elementi_classifica, false);
 
-    for (int j = 0; j < classifica.capacita; j++){
+    for (int j = 0; j < classifica.capacita; j++) {
         classifica.data[j].peso = MAX;
     }
 
@@ -212,23 +220,32 @@ int main() {
                                                 CalcoloPunteggio(matr_costi, peso_array, &peso_heap,
                                                                  esaminato, n_node));
 
-                if (tmp.peso < classifica.data[classifica.dimensione_attuale].peso) {
+
                     if (classifica.dimensione_attuale == classifica.volume) {
-                        classifica.dimensione_attuale--;
-//                        classifica.dimensione_attuale+=2;
+                        if (tmp.peso < classifica.data[0].peso) {
+                            Replace_Element_Start(&classifica, &tmp);
+                            Max_Heapify(&classifica, 0);
+                        }
+                    } else {
+                        Insert_Element_MaxHeap(&classifica, &tmp);
                     }
-//                    else {
-////                        copia_heap_element(&tmp, &classifica.data[classifica.dimensione_attuale]);
-////                        Rebalance_Heap(&classifica);
-////                        classifica.dimensione_attuale++;
 //                    }
+//                    if (classifica.dimensione_attuale == classifica.volume) {
+//                        classifica.dimensione_attuale--;
+////                        classifica.dimensione_attuale+=2;
+//                    }
+////                    else {
+//////                        copia_heap_element(&tmp, &classifica.data[classifica.dimensione_attuale]);
+//////                        Rebalance_Heap_MinHeap(&classifica);
+//////                        classifica.dimensione_attuale++;
+////                    }
+////
+////                    copia_heap_element(&tmp, &classifica.data[classifica.dimensione_attuale]);
+//////                        classifica.dimensione_attuale-=2;
 //
-//                    copia_heap_element(&tmp, &classifica.data[classifica.dimensione_attuale]);
-////                        classifica.dimensione_attuale-=2;
-//                    Rebalance_Heap(&classifica);
+//                    Insert_Element_MaxHeap(&classifica, &tmp);
+//                    Rebalance_Heap_MaxHeap(&classifica);
 //                    classifica.dimensione_attuale++;
-                    Insert_Element(&classifica, &tmp);
-                }
 //
 //                if (contatoregrafi < n_elementi_classifica) {
 //
@@ -266,8 +283,10 @@ int main() {
 
 //        }
 //                Stampa_Classifica(classifica, n_elementi_classifica);
-
-
+//                printf("%lu, %lu\n", tmp.id, tmp.peso);
+#ifdef STAMPA
+                Stampa_Classifica(&classifica);
+#endif
                 contatoregrafi++;
                 break;
 
@@ -306,9 +325,6 @@ int main() {
                 free(peso_heap.data);
 //        free(temp);
 
-                if (n_node <= 5) {
-                    return -1;
-                }
 #ifdef DEBUG
                 fclose(input);
 #endif
@@ -352,11 +368,15 @@ void Stampa_Classifica(heap *classifica) {
 
     //---------STAMPA DI DEBUG----------//
 #ifdef STAMPA
-    for (i = 0; i < n_elementi_da_stampare; i++) {
-               printf("%lu, %lu\n", classifica[i].id, classifica[i].peso);
-           }
-    printf("\n");
+//    for (i = 0; i < n_elementi_da_stampare; i++) {
+//               printf("%lu, %lu\n", classifica[i].id, classifica[i].peso);
+//           }
+//    printf("\n");
 
+    for (int i = 0; i < classifica->dimensione_attuale;i++){
+        printf("%lu %lu\n", classifica->data[i].id, classifica->data[i].peso);
+    }
+    printf("--------\n");
     return;
 #endif
 
@@ -533,7 +553,7 @@ void Inizializza_Grafo(u_int64_t *peso, bool *esaminato, int dimensione) {
 
 }
 
-bool Find_Next(heap *peso_heap, bool *esaminato, u_int64_t *result) {
+bool Find_Next(heap *peso_heap, const bool *esaminato, u_int64_t *result) {
 
 
     heap_element temp;
@@ -603,38 +623,38 @@ static inline void stdin_init(int length_graph, int length_charts) {
     stdout_buffer = malloc(stdout_buffer_size);
 }
 
-
-void Inserimento_In_Testa(heap_element *classifica, heap_element nuovo_elem, u_int64_t num_elem) {
-
-
-    memmove(&(classifica[1]), &(classifica[0]), (num_elem) * sizeof(heap_element));
-
-    copia_heap_element(&(nuovo_elem), &(classifica[0]));
-
-}
-
-
-void Inserimento_Ordinato(heap_element *classifica, u_int64_t numelem, heap_element nuovo_elem) {
-
-    if (nuovo_elem.peso >= classifica[numelem - 1].peso) {
-        // skip
-        return;
-    }
-
-    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
-
-    assert(index <= numelem);
-
-    if (index < numelem) {
-        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(heap_element));
-    }
-
-    copia_heap_element(&(nuovo_elem), &(classifica[index]));
-
-//    classifica[index].id = nuovo_elem.id;
-//    classifica[index].peso = nuovo_elem.peso;
-
-}
+//
+//void Inserimento_In_Testa(heap_element *classifica, heap_element nuovo_elem, u_int64_t num_elem) {
+//
+//
+//    memmove(&(classifica[1]), &(classifica[0]), (num_elem) * sizeof(heap_element));
+//
+//    copia_heap_element(&(nuovo_elem), &(classifica[0]));
+//
+//}
+//
+//
+//void Inserimento_Ordinato(heap_element *classifica, u_int64_t numelem, heap_element nuovo_elem) {
+//
+//    if (nuovo_elem.peso >= classifica[numelem - 1].peso) {
+//        // skip
+//        return;
+//    }
+//
+//    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
+//
+//    assert(index <= numelem);
+//
+//    if (index < numelem) {
+//        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(heap_element));
+//    }
+//
+//    copia_heap_element(&(nuovo_elem), &(classifica[index]));
+//
+////    classifica[index].id = nuovo_elem.id;
+////    classifica[index].peso = nuovo_elem.peso;
+//
+//}
 
 
 u_int64_t
@@ -705,6 +725,26 @@ static inline void Min_Heapify(heap *mio_heap, u_int64_t index) {
 }
 
 
+static inline void Max_Heapify(heap *mio_heap, u_int64_t index) {
+
+    u_int64_t left = Heap_Left(index);
+    u_int64_t right = Heap_Right(index);
+    u_int64_t piccolo = index;
+
+
+    if (left < (mio_heap->dimensione_attuale) && mio_heap->data[left].peso > mio_heap->data[index].peso) {
+        piccolo = left;
+    }
+    if (right < (mio_heap->dimensione_attuale) && mio_heap->data[right].peso > mio_heap->data[piccolo].peso) {
+        piccolo = right;
+    }
+    if (piccolo != index) {
+
+        Swap_Heap_Element(mio_heap, index, piccolo);
+        Max_Heapify(mio_heap, piccolo);
+    }
+}
+
 static inline bool Estrai_Minimo_Heap(heap *mio_heap, heap_element *dove_salvare) {
 
     if (mio_heap->dimensione_attuale == 0) {
@@ -733,7 +773,11 @@ static inline void Replace_Element_End(heap *mio_heap, heap_element *da_inserire
     _Copia_Elemento_Heap_(da_inserire, &(mio_heap->data[mio_heap->dimensione_attuale]));
 }
 
-static inline void Rebalance_Heap(heap *mio_heap) {
+static inline void Replace_Element_Start(heap *mio_heap, heap_element *da_inserire) {
+    _Copia_Elemento_Heap_(da_inserire, &(mio_heap->data[0]));
+}
+
+static inline void Rebalance_Heap_MinHeap(heap *mio_heap) {
     u_int64_t i = mio_heap->dimensione_attuale;
 //    heap_element padre = mio_heap->data[padre(i)];
     while (i != 0 && mio_heap->data[padre(i)].peso > mio_heap->data[i].peso) {
@@ -742,16 +786,37 @@ static inline void Rebalance_Heap(heap *mio_heap) {
     }
 }
 
-static inline void Insert_Element(heap *mio_heap, heap_element *da_inserire) {
+static inline void Rebalance_Heap_MaxHeap(heap *mio_heap) {
+    u_int64_t i = mio_heap->dimensione_attuale;
+
+
+//    heap_element padre = mio_heap->data[padre(i)];
+    while (i != 0 && mio_heap->data[padre(i)].peso < mio_heap->data[i].peso) {
+        Swap_Heap_Element(mio_heap, i, padre(i));
+        i = padre(i);
+    }
+}
+
+
+static inline void Insert_Element_MinHeap(heap *mio_heap, heap_element *da_inserire) {
     Replace_Element_End(mio_heap, da_inserire);
 
 //    assert(mio_heap->dimensione_attuale < mio_heap->capacita);
 
-    Rebalance_Heap(mio_heap);
+    Rebalance_Heap_MinHeap(mio_heap);
     mio_heap->dimensione_attuale++;
 
 }
 
+static inline void Insert_Element_MaxHeap(heap *mio_heap, heap_element *da_inserire) {
+    Replace_Element_End(mio_heap, da_inserire);
+
+//    assert(mio_heap->dimensione_attuale < mio_heap->capacita);
+
+    Rebalance_Heap_MaxHeap(mio_heap);
+    mio_heap->dimensione_attuale++;
+
+}
 
 static inline void Add_To_Heap(heap *mio_heap, u_int64_t id, u_int64_t peso) {
 //    printf("Add Heap %lu %lu\n", id, peso);
@@ -760,7 +825,7 @@ static inline void Add_To_Heap(heap *mio_heap, u_int64_t id, u_int64_t peso) {
             .peso = peso,
             .id = id,
     };
-    Insert_Element(mio_heap, &temp);
+    Insert_Element_MinHeap(mio_heap, &temp);
 }
 
 
@@ -774,8 +839,8 @@ static inline u_int64_t Heap_Left(u_int64_t index) {
 }
 
 
-void Crea_Heap(heap *mio_heap, u_int64_t dimensione) {
-    mio_heap->capacita = dimensione * 50;
+void Crea_Heap(heap *mio_heap, u_int64_t dimensione, bool big) {
+    mio_heap->capacita = dimensione * (big?50:1);
     mio_heap->data = malloc(mio_heap->capacita * sizeof(heap_element));
     mio_heap->dimensione_attuale = 0;
     mio_heap->volume = dimensione;
