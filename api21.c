@@ -850,6 +850,6 @@ void Crea_Heap(heap *mio_heap, u_int64_t dimensione, bool big) {
 inline static void inizializza_elemento_classifica(heap_element *ptr, u_int64_t id, u_int64_t peso) {
     ptr->id = id;
     ptr->txt_len = convert(id, &(ptr->txt));
-    ptr->peso = peso;
+    ptr->peso = peso * 16777216 + id;
 }
 
