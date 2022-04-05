@@ -1,3 +1,7 @@
+//
+// Created by mirko on 07/09/21.
+//
+
 //Li Veli Mirko
 
 
@@ -95,10 +99,6 @@ static inline void Rebalance_Heap_MinHeap(heap *mio_heap);
 
 u_int64_t
 Ricerca_Binaria(heap_element *classifica, heap_element da_trovare, u_int64_t partenza, u_int64_t num_elem);
-
-//void Inserimento_In_Testa(heap_element *classifica, heap_element nuovo_elem, u_int64_t num_elem);
-//
-//void Inserimento_Ordinato(heap_element *classifica, u_int64_t numelem, heap_element nuovo_elem);
 
 unsigned char convert(u_int64_t data, u_int64_t *buff);
 
@@ -221,14 +221,14 @@ int main() {
                                                                  esaminato, n_node));
 
 
-                    if (classifica.dimensione_attuale == classifica.volume) {
-                        if (tmp.peso < classifica.data[0].peso) {
-                            Replace_Element_Start(&classifica, &tmp);
-                            Max_Heapify(&classifica, 0);
-                        }
-                    } else {
-                        Insert_Element_MaxHeap(&classifica, &tmp);
+                if (classifica.dimensione_attuale == classifica.volume) {
+                    if (tmp.peso < classifica.data[0].peso) {
+                        Replace_Element_Start(&classifica, &tmp);
+                        Max_Heapify(&classifica, 0);
                     }
+                } else {
+                    Insert_Element_MaxHeap(&classifica, &tmp);
+                }
 //                    }
 //                    if (classifica.dimensione_attuale == classifica.volume) {
 //                        classifica.dimensione_attuale--;
@@ -319,6 +319,11 @@ int main() {
                 free(stdout_buffer);
                 free(stdin_buffer);
                 free(classifica.data);
+                i = 0;
+                while (i < n_node){
+                    free(matr_costi[i]);
+                    i++;
+                }
                 free(matr_costi);
                 free(esaminato);
                 free(peso_array);
@@ -368,7 +373,7 @@ void Stampa_Classifica(heap *classifica) {
 
     //---------STAMPA DI DEBUG----------//
 #ifdef STAMPA
-//    for (i = 0; i < n_elementi_da_stampare; i++) {
+    //    for (i = 0; i < n_elementi_da_stampare; i++) {
 //               printf("%lu, %lu\n", classifica[i].id, classifica[i].peso);
 //           }
 //    printf("\n");
@@ -554,8 +559,6 @@ void Inizializza_Grafo(u_int64_t *peso, bool *esaminato, int dimensione) {
 }
 
 bool Find_Next(heap *peso_heap, const bool *esaminato, u_int64_t *result) {
-
-
     heap_element temp;
 
     do {
@@ -564,23 +567,9 @@ bool Find_Next(heap *peso_heap, const bool *esaminato, u_int64_t *result) {
         }
     } while (esaminato[temp.id]);
 
-
-//    printf("Found %lu %lu\n", temp.id, temp.peso);
     *result = temp.id;
     return true;
 
-
-//    u_int64_t migliore = MAX;
-//    int toReturn = 0;
-//    int index;
-//    for (index = 1; index < dimensione; index++) {
-//        if (peso[index] < migliore && !esaminato[index]) {
-//            migliore = peso[index];
-//            toReturn = index;
-//        }
-//    }
-//
-//    return toReturn;
 
 }
 
@@ -622,40 +611,6 @@ static inline void stdin_init(int length_graph, int length_charts) {
     stdout_buffer_size = (length_charts + 1) * 10 + length_charts + 10;
     stdout_buffer = malloc(stdout_buffer_size);
 }
-
-//
-//void Inserimento_In_Testa(heap_element *classifica, heap_element nuovo_elem, u_int64_t num_elem) {
-//
-//
-//    memmove(&(classifica[1]), &(classifica[0]), (num_elem) * sizeof(heap_element));
-//
-//    copia_heap_element(&(nuovo_elem), &(classifica[0]));
-//
-//}
-//
-//
-//void Inserimento_Ordinato(heap_element *classifica, u_int64_t numelem, heap_element nuovo_elem) {
-//
-//    if (nuovo_elem.peso >= classifica[numelem - 1].peso) {
-//        // skip
-//        return;
-//    }
-//
-//    u_int64_t index = Ricerca_Binaria(classifica, nuovo_elem, 0, numelem - 1);
-//
-//    assert(index <= numelem);
-//
-//    if (index < numelem) {
-//        memmove(&(classifica[index + 1]), &(classifica[index]), (numelem - index) * sizeof(heap_element));
-//    }
-//
-//    copia_heap_element(&(nuovo_elem), &(classifica[index]));
-//
-////    classifica[index].id = nuovo_elem.id;
-////    classifica[index].peso = nuovo_elem.peso;
-//
-//}
-
 
 u_int64_t
 Ricerca_Binaria(heap_element *classifica, heap_element da_trovare, u_int64_t partenza, u_int64_t num_elem) {
@@ -852,4 +807,3 @@ inline static void inizializza_elemento_classifica(heap_element *ptr, u_int64_t 
     ptr->txt_len = convert(id, &(ptr->txt));
     ptr->peso = peso * 16777216 + id;
 }
-
