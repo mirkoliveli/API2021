@@ -1,6 +1,6 @@
 # API2021
 ## GraphRanker
-##Progetto Algoritmi e Principi dell'Informatica A.A. 2020-2021
+### Progetto Algoritmi e Principi dell'Informatica A.A. 2020-2021
 Il progetto è parte della Prova Finale per la facoltà di [Ingegneria Informatica del Politecnico di Milano](https://www.polimi.it/)
 
 ## Autori
