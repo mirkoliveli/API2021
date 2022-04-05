@@ -1,8 +1,14 @@
 # API2021
 ## GraphRanker
-Progetto Algoritmi e Principi dell'Informatica A.A. 2020-2021
+##Progetto Algoritmi e Principi dell'Informatica A.A. 2020-2021
+Il progetto è parte della Prova Finale per la facoltà di [Ingegneria Informatica del Politecnico di Milano](https://www.polimi.it/)
 
-**Teacher** Matteo Pradella
+## Autori
+**Mirko Li Veli**
++ PoliMi number: 889700
++ GitHub: [@mirkoliveli](https://github.com/mirkoliveli)
+
+**Professore Responsabile** Matteo Pradella
 
 
 <img src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=753px height=366px />
