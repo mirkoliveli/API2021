@@ -22,11 +22,6 @@
 //#define DEBUG "input_4"
 //#define DEBUG "input_5"
 //#define DEBUG "input_6"
-//#define DEBUG "class.txt"
-//#define DEBUG "medio.txt"
-//#define DEBUG "punteggi.txt"
-//#define DEBUG "fabio2.txt"
-//#define DEBUG "class_final.txt"
 //#define STAMPA
 
 
@@ -146,7 +141,7 @@ static inline void Max_Heapify(heap *mio_heap, u_int64_t index);
 int main() {
 
 #ifdef DEBUG
-    FILE *input = freopen("/home/mirko/CLionProjects/API21/open_tests/"DEBUG, "r", stdin);
+    FILE *input = freopen("/home/mirko/CLionProjects/API2021/open_tests/"DEBUG, "r", stdin);
 #endif
 
     int n_node;
