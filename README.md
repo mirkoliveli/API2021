@@ -2,7 +2,7 @@
 ## GraphRanker -Progetto Algoritmi e Principi dell'Informatica A.A. 2020-2021
 **Teacher** Matteo Pradella
 
-<img src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=753px height=366 px align="right" />
+<img src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=753px height=366px />
 
 ## Specifiche del progetto
 L'obiettivo del progetto è la gestione di una classifica
