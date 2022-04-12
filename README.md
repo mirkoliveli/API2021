@@ -4,6 +4,7 @@
 Il progetto è parte della Prova Finale per la facoltà di [Ingegneria Informatica del Politecnico di Milano](https://www.polimi.it/)
 
 ## Autori
+ 
 **Mirko Li Veli**
 + PoliMi number: 889700
 + GitHub: [@mirkoliveli](https://github.com/mirkoliveli)
@@ -11,9 +12,10 @@ Il progetto è parte della Prova Finale per la facoltà di [Ingegneria Informati
 **Professore Responsabile** Matteo Pradella
 
 
-<img src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=753px height=366px />
-
 ## Specifiche del progetto
+
+ <img align="centre-right" src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=376px height=183px />
+
 L'obiettivo del progetto è la gestione di una classifica
 tra grafi diretti pesati:
 * La classifica tiene traccia dei k "migliori" grafi.
