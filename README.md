@@ -13,8 +13,9 @@ Il progetto è parte della Prova Finale per la facoltà di [Ingegneria Informati
 
 
 ## Specifiche del progetto
+<img align="centre-right" src="https://github.com/mirkoliveli/API2021/blob/master/utili/Dijkstra-Algorithm-Graph.png" width=471px height=310px />
 
- <img align="centre-right" src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=376px height=183px />
+[comment]: <> (<img align="centre-right" src="https://www.researchgate.net/publication/323578961/figure/fig5/AS:868789486903298@1584146963208/Example-Graph-for-dynamic-Dijkstra-algorithm.png" width=376px height=183px />)
 
 L'obiettivo del progetto è la gestione di una classifica
 tra grafi diretti pesati:
@@ -32,3 +33,5 @@ Ulteriori informazioni sulle specifiche [qui](https://github.com/mirkoliveli/API
 ## Valutazione e risultati
 * **Valutazione** 30L
 * Punteggi ottenuti nei test di valutazione [qui](https://github.com/mirkoliveli/API2021/tree/master/results)
+
+[grapg-image]: https://github.com/mirkoliveli/API2021/blob/master/utili/Dijkstra-Algorithm-Graph.png
